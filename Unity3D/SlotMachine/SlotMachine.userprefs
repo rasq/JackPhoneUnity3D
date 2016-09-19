@@ -1,0 +1,15 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\MyAssets\AdditionalScripts\wwwCommunication.js">
+    <Files>
+      <File FileName="Assets\MyAssets\AdditionalScripts\buttonManager.js" Line="486" Column="31" />
+      <File FileName="Assets\MSMF\Scripts\VegasSlots.js" Line="458" Column="42" />
+      <File FileName="Assets\MSMF\Scripts\UserData.js" Line="1" Column="1" />
+      <File FileName="Assets\MyAssets\AdditionalScripts\wwwCommunication.js" Line="346" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
