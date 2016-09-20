@@ -3,6 +3,7 @@
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
+/Unity3D/SlotMachine/Temp/
 /Unity3D/SlotMachine/Library/
 /Unity3D/SlotMachine/Library/metadata/
 
@@ -76,3 +77,7 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*.csproj
+*.csproj
+*.sln
+*.unityproj
