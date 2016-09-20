@@ -184,7 +184,6 @@
      <None Include="Assets\Addons\_MK\_MKGlowSystem\_Shader\_MKBase\Particles\MK_Particles-AdditiveBlend.shader" />
      <None Include="Assets\Standard Assets\Effects\ImageEffects\Shaders\VignettingShader.shader" />
      <None Include="Assets\Standard Assets\Characters\ThirdPersonCharacter\ThirdPersonCharacterGuidelines.txt" />
-     <None Include="Assets\machines2.xml" />
      <None Include="Assets\Standard Assets\Effects\ImageEffects\Shaders\Tonemapper.shader" />
      <None Include="Assets\Standard Assets\Effects\ImageEffects\Shaders\_BloomAndFlares\BrightPassFilter.shader" />
      <None Include="Assets\MyAssets\Shaders\RatEmpire\ShadowReciver.shader" />
@@ -192,7 +191,6 @@
      <None Include="Assets\Plugins\SpriteMask\Resources\SpriteDefault.shader" />
      <None Include="Assets\Addons\_MK\_MKGlowSystem\_Shader\_MKBase\Illumin\MK_Illumin-Diffuse.shader" />
      <None Include="Assets\Standard Assets\Cameras\CameraGuidelines.txt" />
-     <None Include="Assets\machines1.xml" />
      <None Include="Assets\Standard Assets\Effects\ImageEffects\Shaders\ColorCorrection3DLut.shader" />
      <None Include="Assets\MyAssets\Shaders\MafiaEmpire\ShadowReciver.shader" />
      <None Include="Assets\Addons\_MK\_MKGlowSystem\_Shader\_MKBase\Normal\MK_Normal-DiffuseRim.shader" />
@@ -249,10 +247,10 @@
  <HintPath>D:/Program Files (x86)/Unity/Editor/Data/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
  </Reference>
  <Reference Include="TexturePackerImporter">
- <HintPath>F:/MaszynaOculus/project/Unity3D/SlotMachine/Assets/codeandweb.com/Editor/TexturePackerImporter.dll</HintPath>
+ <HintPath>G:/GitHub/CloneRepos/JackPhoneUnity3D/Unity3D/SlotMachine/Assets/codeandweb.com/Editor/TexturePackerImporter.dll</HintPath>
  </Reference>
  <Reference Include="TexturePackerImporter">
- <HintPath>F:/MaszynaOculus/project/Unity3D/SlotMachine/Assets/Editor/TexturePackerImporter.dll</HintPath>
+ <HintPath>G:/GitHub/CloneRepos/JackPhoneUnity3D/Unity3D/SlotMachine/Assets/Editor/TexturePackerImporter.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.Graphs">
  <HintPath>D:/Program Files (x86)/Unity/Editor/Data/Managed/UnityEditor.Graphs.dll</HintPath>

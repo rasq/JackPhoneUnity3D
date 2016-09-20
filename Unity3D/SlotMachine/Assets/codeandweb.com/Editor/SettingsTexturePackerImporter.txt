@@ -1,15 +1,15 @@
 version: 2
 importPivots: 1
 tpsheetFileNames:
-- Assets/codeandweb.com/Example/Sprites/spinner_botle_json/spinner_botle.tpsheet
-- Assets/codeandweb.com/Example/SpriteSheet/sprites.tpsheet
 - Assets/MyAssets/Textures/21_9/01_MafiaEmpire/Rolki/Atlas_bottle/bottle.tpsheet
+- Assets/codeandweb.com/Example/SpriteSheet/sprites.tpsheet
 - Assets/MyAssets/Textures/21_9/01_MafiaEmpire/Rolki/Atlas_cash/cash.tpsheet
+- Assets/codeandweb.com/Example/Sprites/spinner_botle_json/spinner_botle.tpsheet
 textureFileNames:
-- Assets/codeandweb.com/Example/Sprites/spinner_botle_json/spinner_botle.png
-- Assets/codeandweb.com/Example/SpriteSheet/sprites.png
 - Assets/MyAssets/Textures/21_9/01_MafiaEmpire/Rolki/Atlas_bottle/bottle.png
+- Assets/codeandweb.com/Example/SpriteSheet/sprites.png
 - Assets/MyAssets/Textures/21_9/01_MafiaEmpire/Rolki/Atlas_cash/cash.png
+- Assets/codeandweb.com/Example/Sprites/spinner_botle_json/spinner_botle.png
 normalmapFileNames:
 - 
 - Assets/codeandweb.com/Example/SpriteSheet/sprites_n.png
