@@ -81,3 +81,7 @@ $RECYCLE.BIN/
 *.csproj
 *.sln
 *.unityproj
+Unity3D/SlotMachine/Assembly-CSharp-Editor-firstpass.csproj
+Unity3D/SlotMachine/Assembly-UnityScript-firstpass.unityproj
+Unity3D/SlotMachine/Assembly-CSharp.csproj
+Unity3D/SlotMachine/Assembly-CSharp-Editor-firstpass.csproj
