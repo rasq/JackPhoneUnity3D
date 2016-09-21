@@ -5,16 +5,24 @@ public var debug 				: boolean = false;
 public var games				: int;
 public var sceneList			: int[];
 public var loadingScreen 		: GameObject;
+public var NumbersScript 		: NumbersScript;
 
 private var buttonContainer 	: GUIText;
 private var UDPClientC 			: UDPClientC;
 private var MachineScript 		: MachineScript;
+private var userData 			: UserData;
+private var wwwCommunication 	: wwwCommunication;
 
 
 //----------------------------------------------------------Awake----------------------------------------------------------------------------
 function Awake(){
 	Screen.SetResolution(3440, 1440, true);
     buttonContainer = gameObject.GetComponent("GUIText");
+    
+	    if(GameObject.FindWithTag("Player")){   
+	        userData = GameObject.FindWithTag("Player").GetComponent.<UserData>();
+	        wwwCommunication = GameObject.FindWithTag("Player").GetComponent.<wwwCommunication>();   
+	    }
     
 	    if (buttonContainer == null){
 	    	buttonContainer = gameObject.AddComponent.<GUIText>();
@@ -42,6 +50,8 @@ function Start(){
     yield MachineScript.FadeOut();
     
     MachineScript.transition.SetActive(false);
+    
+    upddateCoins();
 }
 //----------------------------------------------------------Start----------------------------------------------------------------------------
 //----------------------------------------------------------Update---------------------------------------------------------------------------
@@ -64,9 +74,13 @@ function Click(position : Vector3){
 	
     if(Physics.Raycast(ray, hit, 100)){
         if (debug == true) Debug.Log("Lobby hit: " + hit.collider.gameObject.name);
-	        if (hit.collider.gameObject.name != "prev" && hit.collider.gameObject.name != "next"){
+	        if (hit.collider.gameObject.name != "prev" && hit.collider.gameObject.name != "next" && hit.collider.gameObject.name != "login"){
 	             parseInput("BTN," + hit.collider.gameObject.name);
-	        } 
+	        } else {
+	        	if (hit.collider.gameObject.name == "login"){
+	        	
+	        	}
+	        }
     }
 }
 //----------------------------------------------------------Click----------------------------------------------------------------------------
@@ -94,9 +108,18 @@ function loadScene(msg:String){
             
             UDPClientC.changePath("0" + msg + "\\");
             Application.LoadLevelAsync(tmpInt);
+            
+            MachineScript.transition.SetActive(true);
+    		
+    		yield MachineScript.FadeIn();
         }
 }
 //----------------------------------------------------------loadScene-------------------------------------------------------------------------
+//----------------------------------------------------------upddateCoins----------------------------------------------------------------------
+function upddateCoins(){
+	NumbersScript.setNumber(0, userData.getValue("Coins").ToString());
+}
+//----------------------------------------------------------upddateCoins----------------------------------------------------------------------
 //----------------------------------------------------------parseInput------------------------------------------------------------------------
 function parseInput(msg:String){
 	var strArr					: String[];

@@ -562,7 +562,18 @@ function lobbyFN(){
         Destroy(GameObject.FindWithTag("UDPClient"));
         Destroy(GameObject.FindWithTag("Player"));
 
-        Application.LoadLevel(0);
+
+		 MachineScript.transition.SetActive(true);
+    
+    yield MachineScript.FadeIn();
+    
+   
+        Application.LoadLevelAsync(0);
+    
+    
+    yield MachineScript.FadeOut();
+    
+    	MachineScript.transition.SetActive(false);
     }
 }
 //----------------------------------------------------------lobbyFN--------------------------------------------------------------------------
