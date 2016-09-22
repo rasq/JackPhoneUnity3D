@@ -145,16 +145,19 @@ function logintoFN(){
 //----------------------------------------------------------logintoFN------------------------------------------------------------------------
 //----------------------------------------------------------networkProblem-------------------------------------------------------------------
 function networkProblem(msg:boolean){
-	disableAll();
-	transition.SetActive(true);
 	
-	yield FadeIn();
-	
-		network.SetActive(msg);
-	
-	yield FadeOut();
-	
-	transition.SetActive(false);
+	if ((network.activeSelf == true && msg == false) || (network.activeSelf == false && msg == true)){
+		disableAll();
+		transition.SetActive(true);
+		
+		yield FadeIn();
+		
+			network.SetActive(msg);
+		
+		yield FadeOut();
+		
+		transition.SetActive(false);
+	}
 }
 //----------------------------------------------------------networkProblem-------------------------------------------------------------------
 //----------------------------------------------------------admininstratiwe------------------------------------------------------------------
