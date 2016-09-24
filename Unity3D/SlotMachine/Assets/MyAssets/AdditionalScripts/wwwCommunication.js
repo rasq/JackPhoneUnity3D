@@ -106,7 +106,9 @@ public var dataM 				: String[];
 public var phoneNumberToSet 	: String = "";
 
 public var buttonManager 		: buttonManager;
-private var MachineNumberControl: MachineNumberControl;
+public var MachineNumberControl	: MachineNumberControl;
+public var SimpleMachineNumberControl	: SimpleMachineNumberControl;
+
 private var tempDrvKey 			: String = "";
 private var driverKeyS 			: String = "";
 private var tempUser 			: String = "";
@@ -125,6 +127,7 @@ private var UDPClientC 			: UDPClientC;
 private var VegasSlots 			: VegasSlots;
 private var MachineScript 		: MachineScript;
 
+private var DUM 				: boolean = true;
 private var gPing 				: int = 0;
 private var bPing 				: int = 0;
 private var pingTime 			: int = 15;
@@ -140,18 +143,22 @@ private var pingTime 			: int = 15;
 
 //----------------------------------------------------------Awake----------------------------------------------------------------------------
 function Awake(){  
-		if (debug == true) Debug.Log("xmlPath: " + xmlPath);
-	
 	if (devBuild == true){
 		urlAPI = urlAPIDev;
 	} else {
 		urlAPI = urlAPIProd;
 	}
+	
+		if (debug == true) Debug.Log("xmlPath: " + xmlPath);
 }
 //----------------------------------------------------------Awake----------------------------------------------------------------------------
 //----------------------------------------------------------Start----------------------------------------------------------------------------
 function Start() {
     	if (debug == true) Debug.Log("Starting www API");
+    	
+    MachinesLogin();
+    
+ 		yield WaitForSeconds(5);
     
     pingSystem();
 }
@@ -257,21 +264,21 @@ function OnGUI() {
 }
 //----------------------------------------------------------OnGUI----------------------------------------------------------------------------
 //----------------------------------------------------------initialMachineSetup--------------------------------------------------------------
-function initialMachineSetup(login:String, password:String, drvKey:String){
-	var pullData 				: String = "";
-	var writer 					: XmlWriter  = XmlWriter.Create(xmlPath);
-	
+function initialMachineSetup(login:String, password:String, drvKey:String){	
 		tempUser = login;
 		tempPassword = password;
 		tempDrvKey = drvKey;
 		
 			yield getDataWWW("m/driverkey?DK=" + tempDrvKey + "&MT=" + MToken);
-
-			pullData = www.text;
-			
-			if (pullData == "-2"){
+}
+//----------------------------------------------------------initialMachineSetup--------------------------------------------------------------
+//----------------------------------------------------------initialMachineSetupRecive--------------------------------------------------------
+function initialMachineSetupRecive(msg:String){
+	var writer 					: XmlWriter  = XmlWriter.Create(xmlPath);
+	
+			if (msg == "-2"){
 				if (debug == true) Debug.Log("initialMachineSetup, driverkey update faild. Bad MToken.");
-			} else if (pullData == "0"){
+			} else if (msg == "0"){
 				if (debug == true) Debug.Log("initialMachineSetup, driverkey update success.");
 			} else {
 				if (debug == true) Debug.Log("initialMachineSetup, driverkey update faild. Other error.");
@@ -301,14 +308,21 @@ function initialMachineSetup(login:String, password:String, drvKey:String){
 			       
 			writer.Close();
 }
-//----------------------------------------------------------initialMachineSetup--------------------------------------------------------------
+//----------------------------------------------------------initialMachineSetupRecive--------------------------------------------------------
 //----------------------------------------------------------LogThisMachine-------------------------------------------------------------------
-function LogThisMachine() {
-	var pullData 				: String = "";
-	
-    yield getDataWWW("m/login?M=" + MachinePhone + "&P=" + MachinePassword);
-    
-    	MToken = www.text.Replace('"', "");
+function LogThisMachine() {	
+    yield getDataWWW("m/login?M=" + MachinePhone + "&P=" + MachinePassword);  
+}
+//----------------------------------------------------------LogThisMachine-------------------------------------------------------------------
+//----------------------------------------------------------LogThisMachineRecive-------------------------------------------------------------
+function LogThisMachineRecive(msg:String) {
+    		if (debug == true) Debug.Log("LogThisMachineRecive msg: " + msg);
+    	
+    	MToken = msg;
+    	
+    		if (debug == true) Debug.Log("(1) Token zalogowanej maszyny: " + MToken);
+    	
+    	MToken = MToken.Replace('"', "");
     
 	    if(MToken != "-3") {
 	        checkFMachine = true;
@@ -330,11 +344,13 @@ function LogThisMachine() {
 		
 			if (debug == true) Debug.Log("LogThisMachine saldo to game: " + saldo);
 		
-		buttonManager.setInitCredit(System.Int32.Parse(saldo));
+		if (buttonManager != null) {
+			buttonManager.setInitCredit(System.Int32.Parse(saldo));
+		} 
     
     setMachineNumber();
 }
-//----------------------------------------------------------LogThisMachine-------------------------------------------------------------------
+//----------------------------------------------------------LogThisMachineRecive-------------------------------------------------------------
 //----------------------------------------------------------MachinesLogin--------------------------------------------------------------------
 function MachinesLogin() {
     var readerMF 				: XmlReader = XmlReader.Create(xmlPath);
@@ -343,18 +359,18 @@ function MachinesLogin() {
         while(readerMF.Read()) {
             if(readerMF.Name == "phone") {
                	MachinePhone = readerMF.ReadString();
-              	if (debug == true) Debug.Log(readerMF.Name + " = " + readerMF.ReadString());
+              	if (debug == true) Debug.Log(readerMF.Name + " = " + MachinePhone);
             }
 
             if(readerMF.Name == "password") {
                 MachinePassword = readerMF.ReadString();
-                if (debug == true) Debug.Log(readerMF.Name + " = " + readerMF.ReadString());
+                if (debug == true) Debug.Log(readerMF.Name + " = " + MachinePassword);
             }
 
             if(readerMF.Name == "driverKey") {
                 driverKeyS = readerMF.ReadString();
-                UDPClientC.driverKey = driverKeyS;
-                if (debug == true) Debug.Log(readerMF.Name + " = " + readerMF.ReadString());
+                if (debug == true) Debug.Log(readerMF.Name + " = " + driverKeyS);
+                //UDPClientC.updateDrvKey(driverKeyS);
             }			
         } 
     }
@@ -364,111 +380,117 @@ function MachinesLogin() {
 //----------------------------------------------------------MachinesLogin--------------------------------------------------------------------
 //----------------------------------------------------------GameConfiguration----------------------------------------------------------------
 function GameConfiguration() {
-	var pullData 				: String = "";
+		if (debug == true) Debug.Log("GameConfiguration");
 	
-	if (debug == true) Debug.Log("GameConfiguration");
-	
-    yield getDataWWW("g/config?UT="+ UToken + "&MT=" + MToken);    
-    
-    	pullData = www.text;
-    
-    	if (debug == true) Debug.Log("g/config?UT="+ UToken + "&MT=" + MToken);
-    		
-    	if (pullData != "-1" && pullData != "-2") {
-	    	GameConfig = pullData;
-
-		    if(GameConfig != null) {
-		    	if (debug == true) Debug.Log(GameConfig);
-		    
-		        var reader			:XmlTextReader = new XmlTextReader(new StringReader(GameConfig));
-		        
-		        while(reader.Read()) {
-		            dataG = new String[4];
-		            if(reader.IsStartElement("config")) {
-		                dataG[1] = reader.ReadString();
-		                	if (debug == true) Debug.Log(reader.Name + " = " + reader.GetAttribute("id"));
-		                configIDV = reader.ReadString();
-		            }
-
-		            if(reader.Name == "jackphone") {
-		                jackphoneV = reader.ReadString();
-		                	if (debug == true) Debug.Log(reader.Name + " = " + jackphoneV);
-		            }
-
-		            if(reader.Name == "jackphoneAdd") {
-		                jackphoneAddV = reader.ReadString();
-		                	if (debug == true) Debug.Log(reader.Name + " = " + jackphoneAddV);
-		            }
-
-		            if(reader.Name == "nextWin") {
-		                nextWinV = reader.ReadString();
-		                	if (debug == true) Debug.Log(reader.Name + " = " + nextWinV);
-		            }
-
-		            if(reader.Name == "bonusWin") {
-		                bonusWinV = reader.ReadString();
-		                	if (debug == true) Debug.Log(reader.Name + " = " + bonusWinV);
-		            }
-
-		            if(reader.Name == "jackphoneToWin") {
-		                jackphoneToWinV = reader.ReadString();
-		                	if (debug == true) Debug.Log(reader.Name + " = " + jackphoneToWinV);
-		            } 
-		        } 
-		    }
-		} else {
-			if (debug == true) Debug.Log("GameConfiguration download error, bad Token.");
-		}
-
-    yield getDataWWW("m/config?MT="+ MToken + "&V=" + gameVersion + "&ID=" + gameID); //machine chceck in
-    
-    	pullData = www.text;
-    
-    	if (pullData != "-2") {
-	    	MachineStatus = pullData;
-
-		    if(MachineStatus != null) {
-		        var readerM			: XmlTextReader = new XmlTextReader(new StringReader(MachineStatus));
-		        
-		        while(readerM.Read()) {
-		            dataM = new String[2];
-		            if(readerM.IsStartElement("machineConfig")) {
-		                dataM[1] = readerM.ReadString();
-		                	if (debug == true) Debug.Log(readerM.Name + " = " + readerM.GetAttribute("id"));
-		                configMV = readerM.ReadString();
-		            }
-
-		            if(readerM.Name == "autoupdate") {
-		                autoupdateMV = readerM.ReadString();
-		                	if (debug == true) Debug.Log(readerM.Name + " = " + autoupdateMV);
-		            }
-
-		            if(readerM.Name == "gameURL") {
-		                gameURLMV = readerM.ReadString();
-		                	if (debug == true) Debug.Log(readerM.Name + " = " + gameURLMV);
-		            }
-
-		            if(readerM.Name == "gameHash") {
-		                gameHashMV = readerM.ReadString();
-		                	if (debug == true) Debug.Log(readerM.Name + " = " + gameHashMV);
-		            }
-
-		            if(readerM.Name == "playable") {
-		                playableMV = readerM.ReadString();
-		                	if (debug == true) Debug.Log(readerM.Name + " = " + playableMV);
-		            }
-
-		            if(readerM.Name == "phonePrefix") {
-		                phonePrefixMV = readerM.ReadString();
-		                	if (debug == true) Debug.Log(readerM.Name + " = " + phonePrefixMV);
-		            }
-		        } 
-		    }
-		} else {
-			if (debug == true) Debug.Log("Machine checkin error, bad Token.");
-		}
+    yield getDataWWW("g/config?UT="+ UToken + "&MT=" + MToken);     	
+    yield getDataWWW("m/config?MT="+ MToken + "&V=" + gameVersion + "&ID=" + gameID); 
 }
 //----------------------------------------------------------GameConfiguration----------------------------------------------------------------
+//----------------------------------------------------------GameConfigurationRecive----------------------------------------------------------
+function GameConfigurationRecive(msg:String) {
+	var responseArray			: String[];
+	var pullData 				: String = "";
+			
+			responseArray = msg.Split(";"[0]);
+			pullData = responseArray[1];
+			
+		if(responseArray[0] == "gConf"){
+				if (debug == true) Debug.Log("GameConfigurationRecive - gConf");
+		
+	    	if (msg != "-1" && msg != "-2" && msg != "0") {
+		    	GameConfig = msg;
+
+			    if(GameConfig != null) {
+			    	if (debug == true) Debug.Log(GameConfig);
+			    
+			        var reader			:XmlTextReader = new XmlTextReader(new StringReader(GameConfig));
+			        
+			        while(reader.Read()) {
+			            dataG = new String[4];
+			            if(reader.IsStartElement("config")) {
+			                dataG[1] = reader.ReadString();
+			                	if (debug == true) Debug.Log(reader.Name + " = " + reader.GetAttribute("id"));
+			                configIDV = reader.ReadString();
+			            }
+
+			            if(reader.Name == "jackphone") {
+			                jackphoneV = reader.ReadString();
+			                	if (debug == true) Debug.Log(reader.Name + " = " + jackphoneV);
+			            }
+
+			            if(reader.Name == "jackphoneAdd") {
+			                jackphoneAddV = reader.ReadString();
+			                	if (debug == true) Debug.Log(reader.Name + " = " + jackphoneAddV);
+			            }
+
+			            if(reader.Name == "nextWin") {
+			                nextWinV = reader.ReadString();
+			                	if (debug == true) Debug.Log(reader.Name + " = " + nextWinV);
+			            }
+
+			            if(reader.Name == "bonusWin") {
+			                bonusWinV = reader.ReadString();
+			                	if (debug == true) Debug.Log(reader.Name + " = " + bonusWinV);
+			            }
+
+			            if(reader.Name == "jackphoneToWin") {
+			                jackphoneToWinV = reader.ReadString();
+			                	if (debug == true) Debug.Log(reader.Name + " = " + jackphoneToWinV);
+			            } 
+			        } 
+			    }
+			} else {
+				if (debug == true) Debug.Log("GameConfiguration download error, bad Token.");
+			}
+		} else if (responseArray[0] == "mConf"){
+				if (debug == true) Debug.Log("GameConfigurationRecive - mConf");
+		
+	    	if (msg != "-2") {
+		    	MachineStatus = msg;
+
+			    if(MachineStatus != null) {
+			        var readerM			: XmlTextReader = new XmlTextReader(new StringReader(MachineStatus));
+			        
+			        while(readerM.Read()) {
+			            dataM = new String[2];
+			            if(readerM.IsStartElement("machineConfig")) {
+			                dataM[1] = readerM.ReadString();
+			                	if (debug == true) Debug.Log(readerM.Name + " = " + readerM.GetAttribute("id"));
+			                configMV = readerM.ReadString();
+			            }
+
+			            if(readerM.Name == "autoupdate") {
+			                autoupdateMV = readerM.ReadString();
+			                	if (debug == true) Debug.Log(readerM.Name + " = " + autoupdateMV);
+			            }
+
+			            if(readerM.Name == "gameURL") {
+			                gameURLMV = readerM.ReadString();
+			                	if (debug == true) Debug.Log(readerM.Name + " = " + gameURLMV);
+			            }
+
+			            if(readerM.Name == "gameHash") {
+			                gameHashMV = readerM.ReadString();
+			                	if (debug == true) Debug.Log(readerM.Name + " = " + gameHashMV);
+			            }
+
+			            if(readerM.Name == "playable") {
+			                playableMV = readerM.ReadString();
+			                	if (debug == true) Debug.Log(readerM.Name + " = " + playableMV);
+			            }
+
+			            if(readerM.Name == "phonePrefix") {
+			                phonePrefixMV = readerM.ReadString();
+			                	if (debug == true) Debug.Log(readerM.Name + " = " + phonePrefixMV);
+			            }
+			        } 
+			    }
+			} else {
+				if (debug == true) Debug.Log("Machine checkin error, bad Token.");
+			}
+		}
+}
+//----------------------------------------------------------GameConfigurationRecive----------------------------------------------------------
 //----------------------------------------------------------ifUserExist----------------------------------------------------------------------
 function ifUserExist() {
     checkEmail = VerifyEmailAddress();
@@ -478,8 +500,22 @@ function ifUserExist() {
         	if (debug == true) Debug.Log("Email address entered. Checking if email address exist..."); 
         
         yield getDataWWW("check?email=" + fLogin);
+    } else if(checkPhone == true) {
+        	if (debug == true) Debug.Log("Phone number entered. Checking if phone exist..."); 
+        
+        yield getDataWWW("check?tel=" + fLogin);
+    } else {
+        if (debug == true) Debug.Log("Wrong login. Please enter proper value.");
+    }
+}
+//----------------------------------------------------------ifUserExist----------------------------------------------------------------------
+//----------------------------------------------------------ifUserExistRecive----------------------------------------------------------------
+function ifUserExistRecive(msg:String) {
+    checkEmail = VerifyEmailAddress();
+    checkPhone = VerifyPhoneNumber();
 
-        if(www.text == "0") {
+    if(checkEmail == true) {
+        if(msg == "0") {
             if (debug == true) Debug.Log("Email exist...");
             if (debug == true) Debug.Log("Enter your password");
         } else {
@@ -487,22 +523,16 @@ function ifUserExist() {
             if (debug == true) Debug.Log("Please enter your phone number");
         }
     } else if(checkPhone == true) {
-        	if (debug == true) Debug.Log("Phone number entered. Checking if phone exist..."); 
-        
-        yield getDataWWW("check?tel=" + fLogin);
-
-        if(www.text == "0") {
+        if(msg == "0") {
             if (debug == true) Debug.Log("Phone exist...");
             if (debug == true) Debug.Log("Enter your password");
         } else {
             if (debug == true) Debug.Log("Phone does not exist...");
             if (debug == true) Debug.Log("Creating an account...");
         }
-    } else {
-        if (debug == true) Debug.Log("Wrong login. Please enter proper value.");
     }
 }
-//----------------------------------------------------------ifUserExist----------------------------------------------------------------------
+//----------------------------------------------------------ifUserExistRecive----------------------------------------------------------------
 //----------------------------------------------------------setUser--------------------------------------------------------------------------
 function setUser(login:String, pswd:String){
 		if (debug == true) Debug.Log("setUser: " + login + " - " + pswd);
@@ -512,9 +542,7 @@ function setUser(login:String, pswd:String){
 }
 //----------------------------------------------------------setUser--------------------------------------------------------------------------
 //----------------------------------------------------------LoginUser------------------------------------------------------------------------
-function LoginUser() {
-	var pullData 				: String = "";
-	
+function LoginUser() {	
     if(fLogin == "" || fPassword == "") {
         if (debug == true) Debug.Log("Fill all fields");
     }
@@ -524,8 +552,13 @@ function LoginUser() {
     } else if (checkPhone == true) {
         yield getDataWWW("login?U=48" + fLogin + "&P=" + fPassword + "&MT=" + MToken);
     }
+ }
+//----------------------------------------------------------LoginUser------------------------------------------------------------------------
+//----------------------------------------------------------LoginUserRecive------------------------------------------------------------------
+function LoginUserRecive(msg:String) {
+	var pullData 				: String = "";
     
-    	pullData = www.text; 
+    	pullData = msg; 
 
     if(pullData != "-2" && pullData != "-3") {
         HashValue = pullData;
@@ -546,6 +579,7 @@ function LoginUser() {
 	    
 		saldo = USaldo;
 		buttonManager.setInitCredit(System.Int32.Parse(saldo));
+		
     } else if(pullData == "-2") {
         if (debug == true) Debug.Log("Wrong MToken.");
     } else if(pullData == "-3") {
@@ -554,16 +588,20 @@ function LoginUser() {
         if (debug == true) Debug.Log("Other error.");
     }
 }
-//----------------------------------------------------------LoginUser------------------------------------------------------------------------
+//----------------------------------------------------------LoginUserRecive------------------------------------------------------------------
 //----------------------------------------------------------LogOut---------------------------------------------------------------------------
 function LogOut() {
-	var pullData 				: String = "";
-	
 	if (UToken != ""){
     	yield getDataWWW("u/logout?UT=" + UToken);
-    	
-    	pullData = www.text; 
-    
+    }
+}
+//----------------------------------------------------------LogOut---------------------------------------------------------------------------
+//----------------------------------------------------------LogOutRecive---------------------------------------------------------------------
+function LogOutRecive(msg:String) {
+	var pullData 				: String = "";
+	
+	pullData = msg;
+	
 	    if(pullData == "0") {     
 		    UToken = "";
 		    USaldo = "";
@@ -578,16 +616,22 @@ function LogOut() {
 	    } else {
 	    	if (debug == true) Debug.Log("Logout error.");
 	    }
-    }
 }
-//----------------------------------------------------------LogOut---------------------------------------------------------------------------
-//----------------------------------------------------------LogOut---------------------------------------------------------------------------
+//----------------------------------------------------------LogOutRecive---------------------------------------------------------------------
+//----------------------------------------------------------MachineLogOut--------------------------------------------------------------------
 function MachineLogOut() {
 	if (MToken != ""){
     	yield getDataWWW("m/logout?MT=" + MToken);
     } 
-    
-    if(www.text != '0') {     
+}
+//----------------------------------------------------------MachineLogOut--------------------------------------------------------------------
+//----------------------------------------------------------MachineLogOutRecive--------------------------------------------------------------
+function MachineLogOutRecive(msg:String) {
+	var pullData 				: String = "";
+	
+	pullData = msg;
+
+    if(pullData != '0') {     
 	    MToken = "";
 	    MSaldo = "";
 	    GameConfig = "";
@@ -601,13 +645,17 @@ function MachineLogOut() {
     	if (debug == true) Debug.Log("Logout error.");
     }
 }
-//----------------------------------------------------------LogOut---------------------------------------------------------------------------
+//----------------------------------------------------------MachineLogOutRecive--------------------------------------------------------------
 //----------------------------------------------------------DisplayUSaldo--------------------------------------------------------------------
 function DisplayUSaldo() {
+	DUM = false;
     yield getDataWWW("u/bilans/get?UT=" + UToken);
-    
-    if (www.text != "-1"){
-    	USaldo = www.text;
+}
+//----------------------------------------------------------DisplayUSaldo--------------------------------------------------------------------
+//----------------------------------------------------------DisplayUSaldoRecive--------------------------------------------------------------
+function DisplayUSaldoRecive(msg:String) {
+    if (msg != "-1"){
+    	USaldo = msg;
     		
     		if (debug == true) Debug.Log("Saldo = " + USaldo);
     		
@@ -617,40 +665,47 @@ function DisplayUSaldo() {
     	if (debug == true) Debug.Log("Wrong UToken.");
     }
 }
-//----------------------------------------------------------DisplayUSaldo--------------------------------------------------------------------
+//----------------------------------------------------------DisplayUSaldoRecive--------------------------------------------------------------
 //----------------------------------------------------------DisplayMSaldo--------------------------------------------------------------------
 function DisplayMSaldo() {
+	DUM = true;
     yield getDataWWW("m/bilans/get?MT=" + MToken);
-    
-    if (www.text != "-1"){
-    	MSaldo = www.text;
+}
+//----------------------------------------------------------DisplayMSaldoRecive--------------------------------------------------------------
+function DisplayMSaldoRecive(msg:String) {
+    if (msg != "-1"){
+    	MSaldo = msg;
     		
     		if (debug == true) Debug.Log("Saldo = " + MSaldo);
     		
     	saldo = MSaldo;
-		buttonManager.setInitCredit(System.Int32.Parse(saldo));
+    	if (buttonManager != null) {
+			buttonManager.setInitCredit(System.Int32.Parse(saldo));
+		} /*else if () {
+		
+		}*/
     } else {
     	if (debug == true) Debug.Log("Wrong MToken in DisplayMSaldo.");
     }
 }
-//----------------------------------------------------------DisplayMSaldo--------------------------------------------------------------------
+//----------------------------------------------------------DisplayMSaldoRecive--------------------------------------------------------------
 //----------------------------------------------------------MachineCashRegisterStatus--------------------------------------------------------
 function MachineCashRegisterStatus(msg:int) {
-	var pullData 				: String = "";
-	
 	yield getDataWWW("m/credit?MT" + MToken + "&R=" + msg);
+}
+//----------------------------------------------------------MachineCashRegisterStatus--------------------------------------------------------
+//----------------------------------------------------------MachineCashRegisterRecive--------------------------------------------------------
+function MachineCashRegisterRecive(msg:String) {
 		
-		pullData = www.text;
-		
-	if (pullData == "0"){
+	if (msg == "0"){
 		if (debug == true) Debug.Log("MachineCashRegisterStatus update success.");
-	} else if (pullData == "-2"){
+	} else if (msg == "-2"){
 		if (debug == true) Debug.Log("MachineCashRegisterStatus update error, bad Token.");
 	} else {
 		if (debug == true) Debug.Log("MachineCashRegisterStatus update other error.");
 	}
 }
-//----------------------------------------------------------MachineCashRegisterStatus--------------------------------------------------------
+//----------------------------------------------------------MachineCashRegisterRecive--------------------------------------------------------
 //----------------------------------------------------------AddCoins-------------------------------------------------------------------------
 function AddCoins(msg:int) {
 	var pullData 				: String = "";
@@ -713,6 +768,25 @@ function SubCoins(msg:int) {
 	}
 }
 //----------------------------------------------------------SubCoins-------------------------------------------------------------------------
+//----------------------------------------------------------ReciveBilans---------------------------------------------------------------------
+function ReciveBilans(msg:String) {		
+		if (msg == "1"){
+			if (UToken != ""){
+				if (debug == true) Debug.Log("Wrong UToken.");
+			} else {
+				if (debug == true) Debug.Log("Wrong MToken.");
+			}
+		} else if (msg == "2"){
+			if (UToken != ""){
+				if (debug == true) Debug.Log("User saldo error.");
+			} else {
+				if (debug == true) Debug.Log("Machine saldo error.");
+			}
+		} else if (msg == "0"){
+			if (debug == true) Debug.Log("Saldo update success.");
+		}
+}
+//----------------------------------------------------------ReciveBilans---------------------------------------------------------------------
 //----------------------------------------------------------WinGame--------------------------------------------------------------------------
 function WinGame() {
     yield getDataWWW("u/bilans?UT=" + UToken + "&amount=" + UBilans + "&type=add");
@@ -722,13 +796,18 @@ function WinGame() {
 //----------------------------------------------------------WinGame--------------------------------------------------------------------------
 //----------------------------------------------------------setMachineNumber-----------------------------------------------------------------
 function setMachineNumber(){
- 	if(MachineNumberControl == null){
-		if(GameObject.FindWithTag("MachineNumberControl")){  
-		    MachineNumberControl = GameObject.FindWithTag("MachineNumberControl").GetComponent.<MachineNumberControl>();    
-		   	MachineNumberControl.machineNumberReciver(phoneNumberToSet);
-		}
-    } else {
-    	MachineNumberControl.machineNumberReciver(phoneNumberToSet);
+
+	if (SimpleMachineNumberControl != null){
+		SimpleMachineNumberControl.machineNumberReciver(phoneNumberToSet);
+	} else {
+	 	if(MachineNumberControl == null){
+			if(GameObject.FindWithTag("MachineNumberControl")){  
+			    MachineNumberControl = GameObject.FindWithTag("MachineNumberControl").GetComponent.<MachineNumberControl>();    
+			   	MachineNumberControl.machineNumberReciver(phoneNumberToSet);
+			}
+	    } else {
+	    	MachineNumberControl.machineNumberReciver(phoneNumberToSet);
+	    }
     }
 }
 //----------------------------------------------------------setMachineNumber-----------------------------------------------------------------
@@ -805,30 +884,95 @@ function VerifyEmailAddress(){
 //----------------------------------------------------------VerifyEmailAddress---------------------------------------------------------------
 //----------------------------------------------------------getDataWWW-----------------------------------------------------------------------
 function getDataWWW(param : String){
+	var responseString 			: String = "";
+	
 	if (buttonManager) buttonManager.playBlockade = true;
 
 	    www = new WWW(urlAPI + param);
 	    
 			if (debug == true) Debug.Log("Zapytanie: " + urlAPI + param);
 			
-			
-			 
 	    yield www;
-	    
 		while (!www.isDone) {}
-	
+		responseString = www.text;
+		
+			parseWWWResponse(responseString);
+		
 	if (buttonManager) buttonManager.playBlockade = false;
 }
 //----------------------------------------------------------getDataWWW-----------------------------------------------------------------------
+//----------------------------------------------------------parseWWWResponse-----------------------------------------------------------------
+function parseWWWResponse(response : String){
+	var responseArray			: String[];
+	
+			if (debug == true) Debug.Log("Odpowiedz: " + response);
+			
+		if (response != null){
+			responseArray = response.Split(";"[0]);
+			
+			switch (responseArray[0]) {
+				case "ping":
+					recivePing(responseArray[1]);
+					break;
+				case "mLogin":
+					LogThisMachineRecive(responseArray[1]);
+					break;
+				case "saldo":
+						if (DUM == false){
+							DisplayUSaldoRecive(responseArray[1]); 
+						} else if (DUM == true){
+							DisplayMSaldoRecive(responseArray[1]); 
+						} 
+					break;
+				case "gConf":
+		            GameConfigurationRecive(response);
+					break;
+				case "mConf":
+		            GameConfigurationRecive(response);
+					break;
+				case "mCash":
+		            MachineCashRegisterRecive(responseArray[1]); 
+					break;
+				case "dKey":
+		            initialMachineSetupRecive(responseArray[1]); 
+					break;
+				case "uLogin":
+		            LoginUserRecive(responseArray[1]); 
+					break;
+				case "logout":
+						if (MToken != "" && UToken != "" ){
+			            	LogOutRecive(responseArray[1]); 
+			            } else if (MToken != "" && UToken == ""){
+			            	MachineLogOutRecive(responseArray[1]); 
+			           	}
+					break;
+				case "bilans":
+		            ReciveBilans(responseArray[1]); 
+					break;
+				case "user":
+		            ifUserExistRecive(responseArray[1]); 
+					break;
+				default:
+					Debug.Log("Bad input.");
+					break;
+			}
+		}
+}
+//----------------------------------------------------------parseWWWResponse-----------------------------------------------------------------
 //----------------------------------------------------------pingSystem-----------------------------------------------------------------------
 function pingSystem(){
-	var getPing 				: String = "";
-	
 	 	if (debug == true) Debug.Log("starting ping");	 
-	 
-	yield getDataWWW("m/ping?phone=" + MachinePhone);
-		
-		getPing = www.text;
+	 	
+	yield getDataWWW("m/ping?phone=" + MachinePhone);	
+}
+
+function loopPing(){
+	pingSystem();
+}
+
+function recivePing(msg:String){
+	var getPing 				: String = "";
+		getPing = msg;
 	
 		if (getPing == "0" || getPing == "-3"){
 			gPing = gPing + 1;
@@ -861,13 +1005,9 @@ function pingSystem(){
 			if (debug == true) Debug.Log("Internet connection problem.");
 		}
 	
-	yield WaitForSeconds (pingTime);
+		yield WaitForSeconds (pingTime);
 	
 	loopPing();
-}
-
-function loopPing(){
-	pingSystem();
 }
 //----------------------------------------------------------pingSystem-----------------------------------------------------------------------
 //----------------------------------------------------------dbgFunctions---------------------------------------------------------------------
