@@ -300,6 +300,9 @@ function initialMachineSetupRecive(msg:String){
 				writer.WriteStartElement("driverKey");
 					writer.WriteString(tempDrvKey);
 				writer.WriteEndElement();
+				writer.WriteStartElement("phonePrefix");
+					writer.WriteString(phonePrefixMV);
+				writer.WriteEndElement();
 			writer.WriteEndElement();
 			       
 			               

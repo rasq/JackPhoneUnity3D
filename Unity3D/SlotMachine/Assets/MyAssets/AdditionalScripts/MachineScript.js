@@ -146,17 +146,19 @@ function logintoFN(){
 //----------------------------------------------------------networkProblem-------------------------------------------------------------------
 function networkProblem(msg:boolean){
 	
-	if ((network.activeSelf == true && msg == false) || (network.activeSelf == false && msg == true)){
-		disableAll();
-		transition.SetActive(true);
-		
-		yield FadeIn();
-		
-			network.SetActive(msg);
-		
-		yield FadeOut();
-		
-		transition.SetActive(false);
+	if (network != null && transition != null){
+		if ((network.activeSelf == true && msg == false) || (network.activeSelf == false && msg == true)){
+			disableAll();
+			transition.SetActive(true);
+			
+			yield FadeIn();
+			
+				network.SetActive(msg);
+			
+			yield FadeOut();
+			
+			transition.SetActive(false);
+		}
 	}
 }
 //----------------------------------------------------------networkProblem-------------------------------------------------------------------
