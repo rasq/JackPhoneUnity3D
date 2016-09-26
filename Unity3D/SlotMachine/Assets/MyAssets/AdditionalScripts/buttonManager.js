@@ -134,8 +134,8 @@ function Start () {
     setDefault();
     resetTextNumbers();
     
-    UDPClientC.changePath(pathPrefix);
-    wwwCommunication.MachinesLogin();
+    if (UDPClientC != null) UDPClientC.changePath(pathPrefix);
+    if (wwwCommunication != null) wwwCommunication.MachinesLogin();
 }
 //----------------------------------------------------------Start----------------------------------------------------------------------------
 //----------------------------------------------------------Update---------------------------------------------------------------------------
@@ -289,7 +289,8 @@ function resetTextNumbers(){
     setNumbers(0, "0", "jackpot");
     setNumbers(0, "1", "bet");
     setNumbers(0, "0", "win");
-    setNumbers(0, userData.getValue("Coins").ToString(), "coins");
+    
+    if (userData != null) setNumbers(0, userData.getValue("Coins").ToString(), "coins");
 }
 //----------------------------------------------------------resetTextNumbers-----------------------------------------------------------------
 //----------------------------------------------------------checkKey-------------------------------------------------------------------------
@@ -518,16 +519,20 @@ function setNumbers(x : int, y : String, name : String){
 //----------------------------------------------------------setNumbers-----------------------------------------------------------------------
 //----------------------------------------------------------grajFN---------------------------------------------------------------------------
 function grajFN(){
-	if (playBlockade == false){
-	    	if (debug == true) Debug.Log ("startReel()");
-	    	if (debug == true) Debug.Log ("VegasSlots.currentBet " + VegasSlots.currentBet + " userData.coins " + userData.coins);
-	    	
-	    if(VegasSlots.spinning == false && VegasSlots.currentBet <= userData.coins && userData.coins > 0){
-	    	wwwCommunication.playButtonReleased(VegasSlots.currentBet);
-	        VegasSlots.Spin(VegasSlots.currentBet);
-	        VegasSlots.spinning = true;
-	        VegasSlotsJackPhone.startReel();
+	if (VegasSlots != null && userData != null && wwwCommunication != null) {
+		if (playBlockade == false){
+		    	if (debug == true) Debug.Log ("startReel()");
+		    	if (debug == true) Debug.Log ("VegasSlots.currentBet " + VegasSlots.currentBet + " userData.coins " + userData.coins);
+		    	
+		    if(VegasSlots.spinning == false && VegasSlots.currentBet <= userData.coins && userData.coins > 0){
+		    	wwwCommunication.playButtonReleased(VegasSlots.currentBet);
+		        VegasSlots.Spin(VegasSlots.currentBet);
+		        VegasSlots.spinning = true;
+		        VegasSlotsJackPhone.startReel();
+		    }
 	    }
+    } else {
+    	if (debug == true) Debug.Log ("VegasSlots or userData or wwwCommunication is empty.");
     }
 }
 //----------------------------------------------------------grajFN---------------------------------------------------------------------------
@@ -536,9 +541,9 @@ function isBonusGame(msg : boolean){
     bonusGame = msg;
     
     if (bonusGame == false){
-   		UDPClientC.initBMPButtons(2);
+   		if (UDPClientC != null) UDPClientC.initBMPButtons(2);
    	} else {
-   		UDPClientC.initBMPButtons(6);
+   		if (UDPClientC != null) UDPClientC.initBMPButtons(6);
    	}
 }
 //----------------------------------------------------------isBonusGame----------------------------------------------------------------------
@@ -724,7 +729,7 @@ function instantMaxWin(isOn : boolean){ //it will set instant max win in next ga
     
     		if (debug == true) Debug.Log("instantMaxWin");
     		
-        VegasSlots.winType = 3;
+        //VegasSlots.winType = 3;
     }
 }
 //----------------------------------------------------------instantMaxWin--------------------------------------------------------------------
@@ -734,7 +739,7 @@ function instantMedWin(isOn : boolean){ //it will set instant medium win in next
     
     		if (debug == true)  Debug.Log("instantMedWin");
     		
-        VegasSlots.winType = 2;
+        //VegasSlots.winType = 2;
     }
 }
 //----------------------------------------------------------instantMedWin--------------------------------------------------------------------
@@ -744,7 +749,7 @@ function instantMinWin(isOn : boolean){ //it will set instant minimum win in nex
     
     		if (debug == true) Debug.Log("instantMinWin");
     		
-        VegasSlots.winType = 1;
+        //VegasSlots.winType = 1;
     }
 }
 //----------------------------------------------------------instantMinWin--------------------------------------------------------------------
@@ -754,7 +759,7 @@ function randWin(isOn : boolean){ //it will set instant random win game in next 
     
     		if (debug == true) Debug.Log("randWin");
     		
-        VegasSlots.winType = 0;
+        //VegasSlots.winType = 0;
     }
 }
 //----------------------------------------------------------randWin--------------------------------------------------------------------------
@@ -764,7 +769,7 @@ function noRandWin(isOn : boolean){ //it will set a standard random game
     
     		if (debug == true) Debug.Log("noRandWin");
     		
-        VegasSlots.winType = -1;
+        //VegasSlots.winType = -1;
     }
 }
 //----------------------------------------------------------noRandWin------------------------------------------------------------------------
@@ -774,7 +779,7 @@ function noWin(isOn : boolean){ //it will set instant non win game in next game
     
     		if (debug == true) Debug.Log("noWin");
     		
-        VegasSlots.winType = -2;
+        //VegasSlots.winType = -2;
     }
 }
 //----------------------------------------------------------noWin----------------------------------------------------------------------------

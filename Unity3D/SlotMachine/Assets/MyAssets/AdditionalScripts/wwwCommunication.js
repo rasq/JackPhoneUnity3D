@@ -399,9 +399,9 @@ function GameConfigurationRecive(msg:String) {
 			
 		if(responseArray[0] == "gConf"){
 				if (debug == true) Debug.Log("GameConfigurationRecive - gConf");
-		
-	    	if (msg != "-1" && msg != "-2" && msg != "0") {
-		    	GameConfig = msg;
+				responseArray[1] = pullData;
+	    	if (pullData != "-1" && pullData != "-2" && pullData != "0") {
+		    	GameConfig = pullData;
 
 			    if(GameConfig != null) {
 			    	if (debug == true) Debug.Log(GameConfig);
@@ -447,10 +447,10 @@ function GameConfigurationRecive(msg:String) {
 			}
 		} else if (responseArray[0] == "mConf"){
 				if (debug == true) Debug.Log("GameConfigurationRecive - mConf");
-		
-	    	if (msg != "-2") {
-		    	MachineStatus = msg;
-
+				responseArray[1] = pullData;
+	    	if (pullData != "-2" && pullData != '"invalid_game_id"') {
+		    	MachineStatus = pullData;
+				Debug.Log(pullData);
 			    if(MachineStatus != null) {
 			        var readerM			: XmlTextReader = new XmlTextReader(new StringReader(MachineStatus));
 			        
