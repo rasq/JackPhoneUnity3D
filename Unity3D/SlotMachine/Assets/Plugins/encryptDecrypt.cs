@@ -1,19 +1,26 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 using System;
+using System.Data;
 using System.Text;
+using System.Threading;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using UnityEngine.UI;
-using System.IO;
+using System.Security;
 using System.Security.Cryptography;
 
 public class encryptDecrypt {
-	static readonly string PasswordHash = "*-f85wF$YG";
-	static readonly string SaltKey = "#43greERGgete53#$ghg_8ok";
+	
+	/************************************************************************3DES***********************************************************************************************/
+	/*static readonly string PasswordHash = "*-f85wF$YG";
+	static readonly string SaltKey = "#43greERGgete53#$ghg_8ok"; 						-michal
 	static readonly string VIKey = "qw$554fh/48Oj^7V";
-
+*/
+	static readonly string PasswordHash = "*-f85wF$YG";
+	static readonly string SaltKey = "E4HD9h4DhS23DYfhHemkS3Nf"; 						//-piotr
+	static readonly string VIKey = "fYfhHeDmfYfhHeDm";
 
 
 	public static string EncryptString(string plainText){
@@ -55,4 +62,5 @@ public class encryptDecrypt {
 		
 		return Encoding.UTF8.GetString (plainTextBytes, 0, decryptedByteCount).TrimEnd ("\0".ToCharArray ());
 	}
+	/************************************************************************3DES***********************************************************************************************/
 }

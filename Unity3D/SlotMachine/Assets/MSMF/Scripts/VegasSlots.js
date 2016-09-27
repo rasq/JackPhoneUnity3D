@@ -121,8 +121,9 @@ public var currentBet 			: float = 1.0;
 public var testForWinArray 		: Array = new Array();
 public var testForWinArrayXY 	: Array = new Array();
 
-public var winType 				: int = -1; // 0-random, 1-min, 2-med, 3-max, -1-no instant win
-public var winValues 			: int[]; // values to declare min, med and max win
+//public var winType 				: int = -1; // 0-random, 1-min, 2-med, 3-max, -1-no instant win
+public var valueToWin			: int = 0;
+//public var winValues 			: int[]; // values to declare min, med and max win
 
 //The variables below should not be changed and are not available in the inspector
 private var userData 			: UserData;
@@ -152,34 +153,6 @@ private var a					: int = 0;
 private var y					: int = 0;
 private var tempInt 			: int;
 
-//----------------------------------------------------------Awake----------------------------------------------------------------------------
-function Awake(){
-    if(GameObject.FindWithTag("Player")){ //If we an object in the scene with the tag Player
-        userData = GameObject.FindWithTag("Player").GetComponent.<UserData>(); //Store that object as our users information object
-    }
-
-    for (var h = 0; h < HowManyReels; h++){
-        testForWinArray[h] = new Array();
-        testForWinArrayXY[h] = new Array();
-    }
-	
-	    scatterObject.SetActive(false); //Turn off our scatter display
-	    bonusInfo.bonusInfoParent.SetActive(false); //Turn off our bonus information display
-	    coinShower.stopCoinParticles();  //Turn off the coin shower effect
-	    GenerateNewReels(); //Generate entirely new reels
-	
-	
-    for(var a = 0; a < reelInfo.Length; a++){ //For all the reels
-        RepositionReel(a, reelInfo[a].targetPosition); //Position each reel at the starting position
-	}
-	
-	    lineCount = linesInfo.lineInfo.Length; //Start with max lines
-	    UpdateText(); //Update interface text
-	    iconsSet = true; //Notify the system that we are ready
-	    fadeValue = 1; //Ensure we can see the reels
-	    hideAllLines();
-}
-//----------------------------------------------------------Awake----------------------------------------------------------------------------
 //----------------------------------------------------------Update---------------------------------------------------------------------------
 function Update(){
     /*if (spinNow == true){
@@ -270,46 +243,6 @@ function Update(){
 	}
 }
 //----------------------------------------------------------Update---------------------------------------------------------------------------
-//----------------------------------------------------------OnGUI----------------------------------------------------------------------------
-function OnGUI(){
-    //Access all of the lines information
-    if(onGuiActive == true){
-        for(var l = 0; l < linesInfo.lineInfo.Length; l++){
-            	GUI.skin.label.alignment = TextAnchor.MiddleLeft;  //Align the words on the middle left
-            
-            var screenPos : Vector3 = GetComponent.<Camera>().WorldToScreenPoint(linesInfo.lineInfo[l].lineBoxPosition);  //Store the screen position of the lineBlock
-            var guiPos : Vector2 = Vector2(screenPos.x, (Screen.height - screenPos.y) + ReelYPos); //And convert the screen position to gui position
-          
-	            GUI.color = linesInfo.lineInfo[l].thisColor;  //Make sure that the color is the same as we specified
-	            GUI.DrawTexture(Rect(guiPos.x - 15, guiPos.y - 10, 30, 20), linesInfo.lineBlock); //And draw the lineBlock image
-           
-            var thisLineNumber : int = l + 1; //Then add 1 to our line number so that there is no line 0
-           
-	            GUI.color = Color.black; //Change the color to black
-	            GUI.skin.label.alignment = TextAnchor.MiddleCenter; //Align the words in the center
-	            GUI.Label(Rect(guiPos.x - 25, guiPos.y - 25, 50, 50), thisLineNumber.ToString()); //And display the line number on top of the lineBlock image
-        }
-    }
-	
-	if(inBonusGame){
-		for(var obj : BonusItemInfo in bonusInfo.bonusItemInfo){ //Access all of our clickable bonus objects
-			if(obj.object){
-				var objScript = obj.object.GetComponent.<BonusObjectValue>(); //And store the script that is attached to it
-				
-				if(objScript.displayValue){ //If our stored script says that we should display how much it is worth
-					var itemScreenPos : Vector3 = bonusInfo.bonusCamera.WorldToScreenPoint(obj.object.transform.position); //Store the position of the clickable object in screen space
-					var itemGuiPos : Vector2 = Vector2(itemScreenPos.x + 15, Screen.height - itemScreenPos.y); //And convert that position into gui space
-				
-						obj.valueOpacity = Mathf.Lerp(obj.valueOpacity, 1, Time.deltaTime);	//Change our fade value
-						GUI.color = new Color(1, 1, 1, obj.valueOpacity); //And fade the text
-						GUI.Label(Rect(itemGuiPos.x - 25, itemGuiPos.y - 15, 50, 30), objScript.Value.ToString()); //And display our text with our faded amount
-				}
-			}
-		}
-	}
-	GUI.color = Color.white;
-}
-//----------------------------------------------------------OnGUI----------------------------------------------------------------------------
 //----------------------------------------------------------startReel------------------------------------------------------------------------
 function startReel(){
     spinNow = true;
@@ -420,15 +353,6 @@ function LightenButtons(){ //////////Lighten buttons to indicate that it's activ
 	}
 }
 //----------------------------------------------------------LightenButtons-------------------------------------------------------------------
-//----------------------------------------------------------GenerateNewReels-----------------------------------------------------------------
-function GenerateNewReels(){ //////////Generate entirely new reels//////////
-    StorePreviousFaceIcons();//Store the previous icons that were on the screen
-    RemovePreviousReels();//Remove the Reels
-    UpdateAmountOfReels();//And create new Reels
-    UpdateIconsPerReel();//Update the new symbols
-    PopulateFaceIcons();//And create a list of symbols that will display on the screen
-}
-//----------------------------------------------------------GenerateNewReels-----------------------------------------------------------------
 //----------------------------------------------------------Spin-----------------------------------------------------------------------------
 function Spin(Deduction : int){ //////////Spins the reels and deducts the price//////////
 	var currentCredits			: int = 0;
@@ -475,38 +399,8 @@ function Spin(Deduction : int){ //////////Spins the reels and deducts the price/
 	}
 }
 //----------------------------------------------------------Spin-----------------------------------------------------------------------------
-//----------------------------------------------------------StorePreviousFaceIcons-----------------------------------------------------------
-function StorePreviousFaceIcons(){ //////////Stores the previous symbols that was on the screen//////////
-	System.Array.Resize.<int>(prevFaceIcons, reelInfo.Length * 3); //Resize our list of previous symbols to the amount of symbols that can fit on screen
-	
-	//If the symbols have been set
-	if(iconsSet){
-		//The previous symbols on the screen is the same as the ones on the screen right now
-		prevFaceIcons = faceIcons;
-	}
-}
-//----------------------------------------------------------StorePreviousFaceIcons-----------------------------------------------------------
-//----------------------------------------------------------PopulateFaceIcons----------------------------------------------------------------
-function PopulateFaceIcons(){ //////////Create a list of symbols that will show up on the screen//////////
-    System.Array.Resize.<int>(faceIcons, reelInfo.Length * 3); //Resize the list of symbols on screen to the amount that will show up
-    System.Array.Resize.<int>(faceSprites, reelInfo.Length * 3); //Resize the list of sprites on screen to the amount that will show up
-	
-    for(var a = 0; a < reelInfo.Length; a++){ //For all the reels
-		var extraIcons = a * iconsPerReelDifference;
-		
-		faceIcons[a * 3] = reelInfo[a].slotOrder[iconsPerReel + extraIcons - 1].ID;
-		faceSprites[a * 3] = iconsPerReel + extraIcons - 1;
-			
-		faceIcons[a * 3 + 1] = reelInfo[a].slotOrder[iconsPerReel + extraIcons - 2].ID;
-		faceSprites[a * 3 + 1] = iconsPerReel + extraIcons - 2;
-			
-		faceIcons[a * 3 + 2] = reelInfo[a].slotOrder[iconsPerReel + extraIcons - 3].ID;
-		faceSprites[a * 3 + 2] = iconsPerReel + extraIcons - 3;
-	}
-}
-//----------------------------------------------------------PopulateFaceIcons----------------------------------------------------------------
 //----------------------------------------------------------testForWin-----------------------------------------------------------------------
-function testForWin(){ //IT WILL TEST if we have double or more this same symbols in line, if yes - then run a function to test if this is money win
+/*function testForWin(){ //IT WILL TEST if we have double or more this same symbols in line, if yes - then run a function to test if this is money win
     var wins 						: Array = new Array();
     var step 						: int = 0;
     var i 							: int = 0;
@@ -578,10 +472,10 @@ function testForWin(){ //IT WILL TEST if we have double or more this same symbol
        	 	
         testIfIconWon(wins[w][0].ToString(), wins[w][1].ToString(), w); //sending our maybe winnning array to test if we have any values on this elements
    }
-}
+}*/
 //----------------------------------------------------------testForWin-----------------------------------------------------------------------
 //----------------------------------------------------------testIfIconWon--------------------------------------------------------------------
-function testIfIconWon(nameIco : String, countIco : String, line : int){
+/*function testIfIconWon(nameIco : String, countIco : String, line : int){
     var tmpName;
     var tmpCash;
     var winCash = "";
@@ -634,23 +528,23 @@ function testIfIconWon(nameIco : String, countIco : String, line : int){
                         } else if((iconInfo[x].xThree <= winValues[2]) && (iconInfo[x].xThree >= winValues[1])){
                             	if (debug == true) Debug.Log("med");
                             	
-                            WinScreen.MegaWin("");
+                            WinScreen.MegaWin("");*/
                             /*case "revolver"
                             case "shotgun_shells"
                             case "car"*/
 
                             //WinScreen.MegaWin (msg);
-                        } else if((iconInfo[x].xThree <= winValues[1]) && (iconInfo[x].xThree >= winValues[0])){
+                       /* } else if((iconInfo[x].xThree <= winValues[1]) && (iconInfo[x].xThree >= winValues[0])){
                             	if (debug == true) Debug.Log("low");
                             
-							WinScreen.BigWin("");
+							WinScreen.BigWin("");*/
                             /*case "dice"
                             case "cuffs"
                             case "cash"
                             case "badge"*/
 
                             //WinScreen.BigWin (msg);
-                        }
+                    /*    }
             } else {
                 lineCount = 0;
             }
@@ -658,7 +552,7 @@ function testIfIconWon(nameIco : String, countIco : String, line : int){
     }
 
     userData.updateUserData();
-}
+}*/
 //----------------------------------------------------------testIfIconWon--------------------------------------------------------------------
 //----------------------------------------------------------CalculatePayout------------------------------------------------------------------
 function CalculatePayout(){
@@ -689,10 +583,10 @@ function StopReel(key : int){
 			
 	        if(line.winner){
 				for(var i = 0; i < line.winningIconIDs.Length; i++){
-					if(payoutOrder == 0){
+					if(payoutOrder == 0){ //from left to right
 						reelInfo[i].slotOrder[reelInfo[i].slotOrder.Length - 1 - line.winningIconIDs[i]].canAnimate = true;
 					}
-					if(payoutOrder == 1){
+					if(payoutOrder == 1){ //from right to left
 						reelInfo[(HowManyReels-1) - i].slotOrder[reelInfo[(HowManyReels-1) - i].slotOrder.Length - 1 - line.winningIconIDs[i]].canAnimate = true;
 					}
 				}
@@ -724,7 +618,7 @@ function StopReel(key : int){
 		}
 	
 
-		testForWin(); //testing for win - new function.
+		//testForWin(); //testing for win - new function./*****************************************************************************************************************************/
 
 		for(var a = 0; a < reelInfo.Length; a++){
 		    //Debug.Log("reelInfo[a].slotOrder.Length - " + reelInfo[a].slotOrder.Length);
@@ -874,373 +768,6 @@ function EndBonusGame(){
 	}
 }
 //----------------------------------------------------------EndBonusGame---------------------------------------------------------------------
-//----------------------------------------------------------UpdateAmountOfReels--------------------------------------------------------------
-function UpdateAmountOfReels(){
-	System.Array.Resize.<ReelInfo>(reelInfo, HowManyReels);
-		for(var i = 0; i < HowManyReels; i++){
-			reelInfo[i] = new ReelInfo();
-			reelInfo[i].reel = new GameObject();
-			reelInfo[i].reel.name = "Reel " + i.ToString();
-			reelInfo[i].reel.transform.parent = ReelsConstainer.transform;
-			reelInfo[i].reel.AddComponent.<AudioSource>();
-			reelInfo[i].reel.GetComponent.<AudioSource>().playOnAwake = false;
-		}
-}
-//----------------------------------------------------------UpdateAmountOfReels--------------------------------------------------------------
-//----------------------------------------------------------UpdateIconsPerReel---------------------------------------------------------------
-function UpdateIconsPerReel(){    
-	y = retRandInt(0, 3); //what line will win
-	
-		if (debug == true) Debug.Log("y - " + y + " zakres - [0,3]//[1,4]");
-
-	for(a = 0; a < reelInfo.Length; a++){
-		if (a == 0){
-			jump = 1.5;
-		} else if (a == 1){
-			jump = 1.05;
-		} else if (a == 2){
-			jump = 0.6;
-		}  
-		
-		var extraIcons = a * iconsPerReelDifference;
-		System.Array.Resize.<SlotInfo>(reelInfo[a].slotOrder, iconsPerReel + extraIcons);
-		
-		for(var i = 0; i < iconsPerReel + extraIcons; i++){
-			reelInfo[a].slotOrder[i] = new SlotInfo();
-			var newSprite = new GameObject();
-			newSprite.AddComponent.<SpriteRenderer>();
-			newSprite.name = "Slot " + i.ToString();
-			newSprite.layer = GameLayer;
-			reelInfo[a].slotOrder[i].sprite = newSprite;
-			reelInfo[a].slotOrder[i].sprite.transform.localScale = Vector3(iconSize, iconSize, 1);
-
-			if(iconInfo.Length > 0){
-				var randomIcon : int;
-				for(;;){
-				        randomIcon = Random.Range(0, iconInfo.Length - 1);
-				    var dividend = parseFloat(iconInfo[randomIcon].frequency);
-				        dividend = dividend * chanceDivider;
-					var randomValue = Random.value;
-					var test = 1/dividend > randomValue;
-
-					if(test) {
-						break;
-					}
-				}
-
-				if(!iconsSet){
-					reelInfo[a].slotOrder[i].ID = randomIcon;
-				}
-
-				if(iconsSet){
-				    if(i < HowManyReels){ //HowManyReels was 3
-				        var row = (HowManyReels-1) - i;
-						reelInfo[a].slotOrder[i].ID = prevFaceIcons[a * HowManyReels + row];
-					} else {
-						reelInfo[a].slotOrder[i].ID = randomIcon;
-					}
-				}
-
-				reelInfo[a].slotOrder[i].sprite.GetComponent.<SpriteRenderer>().sprite = iconInfo[reelInfo[a].slotOrder[i].ID].sprite;
-				reelInfo[a].slotOrder[i].size = Vector2(reelInfo[a].slotOrder[i].sprite.GetComponent.<SpriteRenderer>().bounds.extents.x * 2, reelInfo[a].slotOrder[i].sprite.GetComponent.<SpriteRenderer>().bounds.extents.y * 2);
-				
-				reelInfo[a].slotOrder[i].sprite.transform.position = Vector3(a * IconsXYDimensions[0]/*reelInfo[a].slotOrder[i].size.x*/ - IconsXYDimensions[0]/*reelInfo[a].slotOrder[i].size.x*/ * jump, reelInfo[a].reel.transform.position.y + i * IconsXYDimensions[1]/*reelInfo[a].slotOrder[i].size.y*/, 0);
-			    
-					if (debug == true) Debug.Log("reelInfo[a].slotOrder[i].size.y - " + reelInfo[a].slotOrder[i].size.y);
-			}
-			newSprite.transform.parent = reelInfo[a].reel.transform;
-		}
-		RepositionReel(a, -/*reelInfo[a].slotOrder[0].size.y*/IconsXYDimensions[1]);
-		var offset = iconsPerReel + extraIcons - 2;
-		reelInfo[a].targetPosition = IconsXYDimensions[1]/*reelInfo[a].slotOrder[0].size.y*/ * (-offset) + reelsYOffset;
-
-			if (debug == true) Debug.Log("reelInfo[a].slotOrder[0].size.y - " + reelInfo[a].slotOrder[0].size.y);
-	}
-
-	var step 					: int = 0;
-	var tmpName 				: String;
-	var b						: int;
-	var j						: int;
-	var x						: int;
-	var winIcoID				: int = -1; //ion ID with a prize that will be min, med or max 
-	var hManyIcoWin				: int; // it will be set to walue of how many icons is needed to won
-
-
-	if (winType == -2) { //This will be option for blocking player from winning a game
-	    if (debug == true) Debug.Log("No winning.");
-	} else if(winType == -1) { //This is a standard, random game
-	    if (debug == true) Debug.Log("Standard game.");
-	} else { //This is a modified game, player will win min, med or max prize
-	    if(winType == 0) {
-	        	if (debug == true) Debug.Log("Random win game.");
-	        	
-	        winType = retRandInt(0, 3);
-                
-	        	if (debug == true) Debug.Log("winType - " + winType + " zakres - [0,3]//[1,4]");
-	    }
-	    
-	    if(winType == 1) {
-	        if (debug == true) Debug.Log("Min win game.");
-	    } else if(winType == 2) {
-	        if (debug == true) Debug.Log("Med win game.");
-	    } else if(winType == 3) {
-	       if (debug == true)  Debug.Log("Max win game.");
-	    }
-        
-	    //tempInt = retRandInt(0, 2);   
-	    if (debug == true) Debug.Log("tempInt - " + tempInt + " zakres - [0,2]");
-
-	    if(payoutOrder == 0){ //it must be rewroten to support more than 3 reels, check for min, med and max win icon set
-	        tempInt = retRandInt(0, 2);
-	        	
-	        	if (debug == true) Debug.Log("tempInt (after payoutOrder == 0) - " + tempInt + " zakres - [0,2]");
-
-	        for(x = 0; x < iconInfo.length-1; x++){
-	           		if (debug == true) Debug.Log("x value " + x);
-
-	            tmpName = iconInfo[x].Name;
-
-	            if(tempInt == 1){
-	                if(winType == 3){ /***********************************/
-	                    	if (debug == true) Debug.Log("winType == 3 - iconInfo[x].xTwo >= winValues[2] -- " + iconInfo[x].xTwo + " >= " + winValues[2] + " for x = " + x);
-
-	                    if(iconInfo[x].xTwo >= winValues[2]){
-	                        winIcoID = x;
-	                        hManyIcoWin = 2;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } else if (winType == 2){
-	                   		if (debug == true) Debug.Log("winType == 2 - (iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1]) -- " + iconInfo[x].xTwo + " <= " + winValues[2] + " && " + iconInfo[x].xTwo + " >= " + winValues[1] + " for x = " + x);
-
-	                    if((iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1])){
-	                        winIcoID = x;
-	                        hManyIcoWin = 2;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } else {
-	                    	if (debug == true) Debug.Log("winType == 1 - (iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0]) -- " + iconInfo[x].xTwo + " <= " + winValues[1] + " && " + iconInfo[x].xTwo + " >= " + winValues[0] + " for x = " + x);
-
-	                    
-	                    if((iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0])){
-	                        winIcoID = x;
-	                        hManyIcoWin = 2;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } /**********************************/
-
-	                if (winIcoID == -1){
-	                    if (debug == true) Debug.Log("tempInt == 1 -> winIcoID = -1");	                
-	                }
-	            } else if(tempInt == 2){
-	                if(winType == 3){ /***********************************/
-	                    	if (debug == true) Debug.Log("winType == 3 - iconInfo[x].xTwo >= winValues[2] -- " + iconInfo[x].xTwo + " >= " + winValues[2] + " for x = " + x);
-
-	                    if(iconInfo[x].xThree >= winValues[2]){
-	                        winIcoID = x;
-	                        hManyIcoWin = 3;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } else if (winType == 2){
-	                    	if (debug == true) Debug.Log("winType == 2 - (iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1]) -- " + iconInfo[x].xTwo + " <= " + winValues[2] + " && " + iconInfo[x].xTwo + " >= " + winValues[1] + " for x = " + x);
-
-	                    if((iconInfo[x].xThree <= winValues[2]) && (iconInfo[x].xThree >= winValues[1])){
-	                        winIcoID = x;
-	                        hManyIcoWin = 3;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } else {
-	                    	if (debug == true) Debug.Log("winType == 1 - (iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0]) -- " + iconInfo[x].xTwo + " <= " + winValues[1] + " && " + iconInfo[x].xTwo + " >= " + winValues[0] + " for x = " + x);
-
-	                    if((iconInfo[x].xThree <= winValues[1]) && (iconInfo[x].xThree >= winValues[0])){
-	                        winIcoID = x;
-	                        hManyIcoWin = 3;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                }/***********************************/
-                    
-	                if (winIcoID == -1){
-	                    if (debug == true) Debug.Log("tempInt == 2 -> winIcoID = -1");	                
-	                }
-	            }
-	        }
-
-	        if(winIcoID == -1){
-	            if (debug == true) Debug.Log("winIcoID = -1 restart");
-	            
-	            GenerateNewReels();
-                    
-	            //break;
-	        }
-	    } else if(payoutOrder == 1){
-	        tempInt = retRandInt(0, 2);
-	        
-	        	if (debug == true) Debug.Log("tempInt (after payoutOrder == 1) - " + tempInt + " zakres - [0,2]");
-
-	        for(x = iconInfo.length - 2; x >= 0; x--){
-	            //Debug.Log("x value " + x);
-
-	            tmpName = iconInfo[x].Name;
-
-	            if(tempInt == 1){
-	                if(winType == 3){ /***********************************/
-	                    	if (debug == true) Debug.Log("winType == 3 - iconInfo[x].xTwo >= winValues[2] -- " + iconInfo[x].xTwo + " >= " + winValues[2] + " for x = " + x);
-
-	                    if(iconInfo[x].xTwo > winValues[2]){
-	                        winIcoID = x;
-	                        hManyIcoWin = 2;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } else if (winType == 2){
-	                    	if (debug == true) Debug.Log("winType == 2 - (iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1]) -- " + iconInfo[x].xTwo + " <= " + winValues[2] + " && " + iconInfo[x].xTwo + " >= " + winValues[1] + " for x = " + x);
-
-	                    if(iconInfo[x].xTwo <= winValues[2] && iconInfo[x].xTwo > winValues[1]){
-	                        winIcoID = x;
-	                        hManyIcoWin = 2;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } else {
-	                    	if (debug == true) Debug.Log("winType == 1 - (iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0]) -- " + iconInfo[x].xTwo + " <= " + winValues[1] + " && " + iconInfo[x].xTwo + " >= " + winValues[0] + " for x = " + x);
-
-	                    if(iconInfo[x].xTwo <= winValues[1] && iconInfo[x].xTwo >= winValues[0]){
-	                        winIcoID = x;
-	                        hManyIcoWin = 2;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } /***********************************/
-
-	                if (x == -1){
-	                    if (debug == true) Debug.Log("tempInt == 1 -> x = -1");	                
-	                }
-	            } else if(tempInt == 2){
-	                if(winType == 3){  /***********************************/
-	                    	if (debug == true) Debug.Log("winType == 3 - iconInfo[x].xTwo >= winValues[2] -- " + iconInfo[x].xTwo + " >= " + winValues[2] + " for x = " + x);
-
-	                    if(iconInfo[x].xThree >= winValues[2]){
-	                        winIcoID = x;
-	                        hManyIcoWin = 3;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } else if (winType == 2){
-	                    	if (debug == true) Debug.Log("winType == 2 - (iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1]) -- " + iconInfo[x].xTwo + " <= " + winValues[2] + " && " + iconInfo[x].xTwo + " >= " + winValues[1] + " for x = " + x);
-
-	                    if(iconInfo[x].xThree <= winValues[2] && iconInfo[x].xThree <= winValues[1]){
-	                        winIcoID = x;
-	                        hManyIcoWin = 3;
-	                        	
-	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } else {
-	                    	if (debug == true) Debug.Log("winType == 1 - (iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0]) -- " + iconInfo[x].xTwo + " <= " + winValues[1] + " && " + iconInfo[x].xTwo + " >= " + winValues[0] + " for x = " + x);
-
-	                    if(iconInfo[x].xThree <= winValues[1] && iconInfo[x].xThree >= winValues[0]){
-	                        winIcoID = x;
-	                        hManyIcoWin = 3;
-	                       	 	
-	                       	 	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
-
-	                        break;
-	                    } else {
-	                        winIcoID = -1;
-	                    }
-	                } /***********************************/
-                    
-
-	                if (winIcoID == -1){
-	                    if (debug == true) Debug.Log("tempInt == 2 -> winIcoID = -1");	                
-	                }
-	            }
-	        }
-
-	        if(winIcoID == -1){
-	            	if (debug == true) Debug.Log("winIcoID = -1 restart");
-	            	
-	            GenerateNewReels();
-
-	            //break;
-	        }
-
-	    }
-
-	    if (debug == true) Debug.Log("winIcoID " + winIcoID);
-
-	    for(b = 0; b < hManyIcoWin; b++){ //it will switch no winning icont into winning
-	        if (debug == true) Debug.Log("b - " + b);
-	        if (debug == true) Debug.Log("               s - " + (reelInfo[b].slotOrder.Length - (y+1)));
-
-	        reelInfo[b].slotOrder[(reelInfo[b].slotOrder.Length - (y+1))].sprite.GetComponent.<SpriteRenderer>().sprite = iconInfo[winIcoID].sprite;
-	    }
-
-	}    
-    
-	for(b = 0; b < reelInfo.Length; b++){ //checking if will be win in a testWinOnLines and saving result into 2D array
-	    step = 0;
-	    for(j = 0; j < reelInfo[b].slotOrder.Length; j++){
-	        if(j < (reelInfo[b].slotOrder.Length - testWinOnLines[0]) && j >= (reelInfo[b].slotOrder.Length - (testWinOnLines[1]+1))){
-	            testForWinArray[b][step] = reelInfo[b].slotOrder[j].sprite.GetComponent.<SpriteRenderer>().sprite.name.ToString(); 
-	            testForWinArrayXY[b][step] = b + "," + j;
-	            step++;
-	        }
-	    }
-	}
-
-	prevIconCount = iconsPerReel;
-	winType = -1; //reset nex game win to no interfere
-}
-//----------------------------------------------------------UpdateIconsPerReel---------------------------------------------------------------
 //----------------------------------------------------------retRandInt-----------------------------------------------------------------------
 function retRandInt(max : int, min : int) : int{
     var returnValue 			: int = 0;
@@ -1255,20 +782,6 @@ function RepositionReel(ID : int, yPos : float){
 	reelInfo[ID].reel.transform.position.y = yPos;
 }
 //----------------------------------------------------------RepositionReel-------------------------------------------------------------------
-//----------------------------------------------------------RemovePreviousReels--------------------------------------------------------------
-function RemovePreviousReels(){
-	if(reelInfo.Length > 0){
-		for(var info : ReelInfo in reelInfo){
-			if(info.slotOrder.Length > 0){
-				for(var i = 0; i < info.slotOrder.Length; i++){
-					DestroyImmediate(info.slotOrder[i].sprite);
-				}
-			}
-			DestroyImmediate(info.reel);
-		}
-	}
-}
-//----------------------------------------------------------RemovePreviousReels--------------------------------------------------------------
 //----------------------------------------------------------IncreaseLines--------------------------------------------------------------------
 function IncreaseLines(){
     if(!spinning && !inBonusGame && !scatterSpinning){
@@ -1353,6 +866,46 @@ function MaxBet(){ //////////Adjusts the bet to max and spins//////////
 	}
 }
 //----------------------------------------------------------MaxBet---------------------------------------------------------------------------
+//----------------------------------------------------------OnGUI----------------------------------------------------------------------------
+function OnGUI(){
+    //Access all of the lines information
+    if(onGuiActive == true){
+        for(var l = 0; l < linesInfo.lineInfo.Length; l++){
+            	GUI.skin.label.alignment = TextAnchor.MiddleLeft;  //Align the words on the middle left
+            
+            var screenPos : Vector3 = GetComponent.<Camera>().WorldToScreenPoint(linesInfo.lineInfo[l].lineBoxPosition);  //Store the screen position of the lineBlock
+            var guiPos : Vector2 = Vector2(screenPos.x, (Screen.height - screenPos.y) + ReelYPos); //And convert the screen position to gui position
+          
+	            GUI.color = linesInfo.lineInfo[l].thisColor;  //Make sure that the color is the same as we specified
+	            GUI.DrawTexture(Rect(guiPos.x - 15, guiPos.y - 10, 30, 20), linesInfo.lineBlock); //And draw the lineBlock image
+           
+            var thisLineNumber : int = l + 1; //Then add 1 to our line number so that there is no line 0
+           
+	            GUI.color = Color.black; //Change the color to black
+	            GUI.skin.label.alignment = TextAnchor.MiddleCenter; //Align the words in the center
+	            GUI.Label(Rect(guiPos.x - 25, guiPos.y - 25, 50, 50), thisLineNumber.ToString()); //And display the line number on top of the lineBlock image
+        }
+    }
+	
+	if(inBonusGame){
+		for(var obj : BonusItemInfo in bonusInfo.bonusItemInfo){ //Access all of our clickable bonus objects
+			if(obj.object){
+				var objScript = obj.object.GetComponent.<BonusObjectValue>(); //And store the script that is attached to it
+				
+				if(objScript.displayValue){ //If our stored script says that we should display how much it is worth
+					var itemScreenPos : Vector3 = bonusInfo.bonusCamera.WorldToScreenPoint(obj.object.transform.position); //Store the position of the clickable object in screen space
+					var itemGuiPos : Vector2 = Vector2(itemScreenPos.x + 15, Screen.height - itemScreenPos.y); //And convert that position into gui space
+				
+						obj.valueOpacity = Mathf.Lerp(obj.valueOpacity, 1, Time.deltaTime);	//Change our fade value
+						GUI.color = new Color(1, 1, 1, obj.valueOpacity); //And fade the text
+						GUI.Label(Rect(itemGuiPos.x - 25, itemGuiPos.y - 15, 50, 30), objScript.Value.ToString()); //And display our text with our faded amount
+				}
+			}
+		}
+	}
+	GUI.color = Color.white;
+}
+//----------------------------------------------------------OnGUI----------------------------------------------------------------------------
 //----------------------------------------------------------showLine-------------------------------------------------------------------------
 function showLine(ID : int, segments : int){
     var step 					: int = 0;
@@ -1372,5 +925,535 @@ function hideAllLines(){
     }    
 }
 //----------------------------------------------------------hideAllLines---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//**************************************************************newAlgoritm******************************************************************
+
+//----------------------------------------------------------Awake----------------------------------------------------------------------------
+function Awake(){
+    if(GameObject.FindWithTag("Player")){ 
+        userData = GameObject.FindWithTag("Player").GetComponent.<UserData>(); 
+    }
+
+    for (var h = 0; h < HowManyReels; h++){
+        testForWinArray[h] = new Array();
+        testForWinArrayXY[h] = new Array();
+    }
+	
+	    scatterObject.SetActive(false); //Turn off our scatter display
+	    bonusInfo.bonusInfoParent.SetActive(false); //Turn off our bonus information display
+	    coinShower.stopCoinParticles();  //Turn off the coin shower effect
+	    GenerateNewReels(); //Generate entirely new reels
+	
+	
+    for(var a = 0; a < reelInfo.Length; a++){ //For all the reels
+        RepositionReel(a, reelInfo[a].targetPosition); //Position each reel at the starting position
+	}
+	
+	    lineCount = linesInfo.lineInfo.Length; //Start with max lines
+	    UpdateText(); //Update interface text
+	    iconsSet = true; //Notify the system that we are ready
+	    fadeValue = 1; //Ensure we can see the reels
+	    hideAllLines();
+}
+//----------------------------------------------------------Awake----------------------------------------------------------------------------
+//----------------------------------------------------------GenerateNewReels-----------------------------------------------------------------
+function GenerateNewReels(){ //////////Generate entirely new reels//////////
+    StorePreviousFaceIcons();//Store the previous icons that were on the screen
+    RemovePreviousReels();//Remove the Reels
+    UpdateAmountOfReels();//And create new Reels
+    UpdateIconsPerReel();//Update the new symbols
+    PopulateFaceIcons();//And create a list of symbols that will display on the screen
+}
+//----------------------------------------------------------GenerateNewReels-----------------------------------------------------------------
+//----------------------------------------------------------StorePreviousFaceIcons-----------------------------------------------------------
+function StorePreviousFaceIcons(){ //////////Stores the previous symbols that was on the screen//////////
+	System.Array.Resize.<int>(prevFaceIcons, reelInfo.Length * 3); //Resize our list of previous symbols to the amount of symbols that can fit on screen
+	
+	if(iconsSet){ //If the symbols have been set
+		prevFaceIcons = faceIcons;//The previous symbols on the screen is the same as the ones on the screen right now
+	}
+}
+//----------------------------------------------------------StorePreviousFaceIcons-----------------------------------------------------------
+//----------------------------------------------------------RemovePreviousReels--------------------------------------------------------------
+function RemovePreviousReels(){
+	if(reelInfo.Length > 0){
+		for(var info : ReelInfo in reelInfo){
+			if(info.slotOrder.Length > 0){
+				for(var i = 0; i < info.slotOrder.Length; i++){
+					DestroyImmediate(info.slotOrder[i].sprite);
+				}
+			}
+			DestroyImmediate(info.reel);
+		}
+	}
+}
+//----------------------------------------------------------RemovePreviousReels--------------------------------------------------------------
+//----------------------------------------------------------UpdateAmountOfReels--------------------------------------------------------------
+function UpdateAmountOfReels(){
+	System.Array.Resize.<ReelInfo>(reelInfo, HowManyReels);
+		for(var i = 0; i < HowManyReels; i++){
+			reelInfo[i] = new ReelInfo();
+			reelInfo[i].reel = new GameObject();
+			reelInfo[i].reel.name = "Reel " + i.ToString();
+			reelInfo[i].reel.transform.parent = ReelsConstainer.transform;
+			reelInfo[i].reel.AddComponent.<AudioSource>();
+			reelInfo[i].reel.GetComponent.<AudioSource>().playOnAwake = false;
+		}
+}
+//----------------------------------------------------------UpdateAmountOfReels--------------------------------------------------------------
+//----------------------------------------------------------UpdateIconsPerReel---------------------------------------------------------------
+function UpdateIconsPerReel(){    
+	var step 					: int = 0;
+	var tmpName 				: String;
+	var b						: int;
+	var j						: int;
+	var x						: int;
+	var spliString				: String[];
+	var winIcoID				: String = ""; //ion ID with a prize that will be min, med or max 
+	var hManyIcoWin				: int; // it will be set to walue of how many icons is needed to won
+	var iconInfoID				: int;
+		
+		y = retRandInt(0, 3); //what line will win
+	
+		//if (debug == true) Debug.Log("y - " + y + " zakres - [0,3]//[1,4]");
+		
+		if (valueToWin > 0) {
+			spliString = FindWinningIcon().Split(";"[0]);
+			winIcoID = spliString[0];
+			hManyIcoWin	= System.Int32.Parse(spliString[1]);
+			iconInfoID = System.Int32.Parse(spliString[2]);
+		}
+
+	for(a = 0; a < reelInfo.Length; a++){
+		if (a == 0){
+			jump = 1.5;
+		} else if (a == 1){
+			jump = 1.05;
+		} else if (a == 2){
+			jump = 0.6;
+		}  
+		
+		var extraIcons = a * iconsPerReelDifference;
+		System.Array.Resize.<SlotInfo>(reelInfo[a].slotOrder, iconsPerReel + extraIcons);
+		
+		for(var i = 0; i < iconsPerReel + extraIcons; i++){
+			var newSprite = new GameObject();
+				reelInfo[a].slotOrder[i] = new SlotInfo();
+				reelInfo[a].slotOrder[i].sprite = newSprite;
+				reelInfo[a].slotOrder[i].sprite.transform.localScale = Vector3(iconSize, iconSize, 1);
+				newSprite.AddComponent.<SpriteRenderer>();
+				newSprite.name = "Slot " + i.ToString();
+				newSprite.layer = GameLayer;
+
+			if(iconInfo.Length > 0){
+				var randomIcon : int;
+				for(;;){
+				        randomIcon = Random.Range(0, iconInfo.Length - 1);
+				    var dividend = parseFloat(iconInfo[randomIcon].frequency);
+				        dividend = dividend * chanceDivider;
+					var randomValue = Random.value;
+					var test = 1/dividend > randomValue;
+
+					if(test) {
+						break;
+					}
+				}
+
+				if(!iconsSet){
+					reelInfo[a].slotOrder[i].ID = randomIcon;
+				}
+
+				if(iconsSet){
+				    if(i < HowManyReels){ //HowManyReels was 3
+				        var row = (HowManyReels-1) - i;
+							reelInfo[a].slotOrder[i].ID = prevFaceIcons[a * HowManyReels + row];
+					} else {
+						reelInfo[a].slotOrder[i].ID = randomIcon;
+					}
+				}
+				
+				
+					reelInfo[a].slotOrder[i].sprite.GetComponent.<SpriteRenderer>().sprite = iconInfo[reelInfo[a].slotOrder[i].ID].sprite;
+					reelInfo[a].slotOrder[i].size = Vector2(reelInfo[a].slotOrder[i].sprite.GetComponent.<SpriteRenderer>().bounds.extents.x * 2, reelInfo[a].slotOrder[i].sprite.GetComponent.<SpriteRenderer>().bounds.extents.y * 2);
+					reelInfo[a].slotOrder[i].sprite.transform.position = Vector3(a * IconsXYDimensions[0] - IconsXYDimensions[0] * jump, reelInfo[a].reel.transform.position.y + i * IconsXYDimensions[1], 0);
+				
+				if (winIcoID == ""){
+			    	//change to loose all icons if this can won a cash
+				} else {
+					if(payoutOrder == 0){
+					 
+					} else if(payoutOrder == 1){
+					
+					}
+				}
+					//if (debug == true) Debug.Log("reelInfo[a].slotOrder[i].size.y - " + reelInfo[a].slotOrder[i].size.y);
+			}
+			newSprite.transform.parent = reelInfo[a].reel.transform;
+		}
+		var offset = iconsPerReel + extraIcons - 2;
+			RepositionReel(a, -/*reelInfo[a].slotOrder[0].size.y*/IconsXYDimensions[1]);
+			reelInfo[a].targetPosition = IconsXYDimensions[1]/*reelInfo[a].slotOrder[0].size.y*/ * (-offset) + reelsYOffset;
+
+			//if (debug == true) Debug.Log("reelInfo[a].slotOrder[0].size.y - " + reelInfo[a].slotOrder[0].size.y);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+	/*if (winType == -2) { //This will be option for blocking player from winning a game
+	    if (debug == true) Debug.Log("No winning.");
+	} else if(winType == -1) { //This is a standard, random game
+	    if (debug == true) Debug.Log("Standard game.");
+	} else { //This is a modified game, player will win min, med or max prize
+	    if(winType == 0) {
+	        	if (debug == true) Debug.Log("Random win game.");
+	        	
+	        winType = retRandInt(0, 3);
+                
+	        	if (debug == true) Debug.Log("winType - " + winType + " zakres - [0,3]//[1,4]");
+	    }
+	    
+	    if(winType == 1) {
+	        if (debug == true) Debug.Log("Min win game.");
+	    } else if(winType == 2) {
+	        if (debug == true) Debug.Log("Med win game.");
+	    } else if(winType == 3) {
+	       if (debug == true)  Debug.Log("Max win game.");
+	    }
+        
+	    //tempInt = retRandInt(0, 2);   
+	    if (debug == true) Debug.Log("tempInt - " + tempInt + " zakres - [0,2]");
+
+	    if(payoutOrder == 0){ //it must be rewroten to support more than 3 reels, check for min, med and max win icon set
+	        tempInt = retRandInt(0, 2);
+	        	
+	        	if (debug == true) Debug.Log("tempInt (after payoutOrder == 0) - " + tempInt + " zakres - [0,2]");
+
+	        for(x = 0; x < iconInfo.length-1; x++){
+	           		if (debug == true) Debug.Log("x value " + x);
+
+	            tmpName = iconInfo[x].Name;
+
+	            if(tempInt == 1){*/
+	                /*if(winType == 3){ *//***********************************/
+	                    	/*if (debug == true) Debug.Log("winType == 3 - iconInfo[x].xTwo >= winValues[2] -- " + iconInfo[x].xTwo + " >= " + winValues[2] + " for x = " + x);
+
+	                    if(iconInfo[x].xTwo >= winValues[2]){
+	                        winIcoID = x;
+	                        hManyIcoWin = 2;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } else if (winType == 2){
+	                   		if (debug == true) Debug.Log("winType == 2 - (iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1]) -- " + iconInfo[x].xTwo + " <= " + winValues[2] + " && " + iconInfo[x].xTwo + " >= " + winValues[1] + " for x = " + x);
+
+	                    if((iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1])){
+	                        winIcoID = x;
+	                        hManyIcoWin = 2;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } else {
+	                    	if (debug == true) Debug.Log("winType == 1 - (iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0]) -- " + iconInfo[x].xTwo + " <= " + winValues[1] + " && " + iconInfo[x].xTwo + " >= " + winValues[0] + " for x = " + x);
+
+	                    
+	                    if((iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0])){
+	                        winIcoID = x;
+	                        hManyIcoWin = 2;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } *//**********************************/
+
+	                /*if (winIcoID == -1){
+	                    if (debug == true) Debug.Log("tempInt == 1 -> winIcoID = -1");	                
+	                }
+	            } else if(tempInt == 2){
+	                if(winType == 3){ *//***********************************/
+	                    	/*if (debug == true) Debug.Log("winType == 3 - iconInfo[x].xTwo >= winValues[2] -- " + iconInfo[x].xTwo + " >= " + winValues[2] + " for x = " + x);
+
+	                    if(iconInfo[x].xThree >= winValues[2]){
+	                        winIcoID = x;
+	                        hManyIcoWin = 3;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } else if (winType == 2){
+	                    	if (debug == true) Debug.Log("winType == 2 - (iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1]) -- " + iconInfo[x].xTwo + " <= " + winValues[2] + " && " + iconInfo[x].xTwo + " >= " + winValues[1] + " for x = " + x);
+
+	                    if((iconInfo[x].xThree <= winValues[2]) && (iconInfo[x].xThree >= winValues[1])){
+	                        winIcoID = x;
+	                        hManyIcoWin = 3;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } else {
+	                    	if (debug == true) Debug.Log("winType == 1 - (iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0]) -- " + iconInfo[x].xTwo + " <= " + winValues[1] + " && " + iconInfo[x].xTwo + " >= " + winValues[0] + " for x = " + x);
+
+	                    if((iconInfo[x].xThree <= winValues[1]) && (iconInfo[x].xThree >= winValues[0])){
+	                        winIcoID = x;
+	                        hManyIcoWin = 3;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                }*//***********************************/
+                    /*
+	                if (winIcoID == -1){
+	                    if (debug == true) Debug.Log("tempInt == 2 -> winIcoID = -1");	                
+	                }
+	            }
+	        }
+
+	        if(winIcoID == -1){
+	            if (debug == true) Debug.Log("winIcoID = -1 restart");
+	            
+	            GenerateNewReels();
+                    
+	            //break;
+	        }
+	    } else if(payoutOrder == 1){
+	        tempInt = retRandInt(0, 2);
+	        
+	        	if (debug == true) Debug.Log("tempInt (after payoutOrder == 1) - " + tempInt + " zakres - [0,2]");
+
+	        for(x = iconInfo.length - 2; x >= 0; x--){
+	            //Debug.Log("x value " + x);
+
+	            tmpName = iconInfo[x].Name;
+
+	            if(tempInt == 1){
+	                if(winType == 3){ *//***********************************/
+	                    	/*if (debug == true) Debug.Log("winType == 3 - iconInfo[x].xTwo >= winValues[2] -- " + iconInfo[x].xTwo + " >= " + winValues[2] + " for x = " + x);
+
+	                    if(iconInfo[x].xTwo > winValues[2]){
+	                        winIcoID = x;
+	                        hManyIcoWin = 2;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } else if (winType == 2){
+	                    	if (debug == true) Debug.Log("winType == 2 - (iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1]) -- " + iconInfo[x].xTwo + " <= " + winValues[2] + " && " + iconInfo[x].xTwo + " >= " + winValues[1] + " for x = " + x);
+
+	                    if(iconInfo[x].xTwo <= winValues[2] && iconInfo[x].xTwo > winValues[1]){
+	                        winIcoID = x;
+	                        hManyIcoWin = 2;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } else {
+	                    	if (debug == true) Debug.Log("winType == 1 - (iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0]) -- " + iconInfo[x].xTwo + " <= " + winValues[1] + " && " + iconInfo[x].xTwo + " >= " + winValues[0] + " for x = " + x);
+
+	                    if(iconInfo[x].xTwo <= winValues[1] && iconInfo[x].xTwo >= winValues[0]){
+	                        winIcoID = x;
+	                        hManyIcoWin = 2;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xTwo - " + iconInfo[x].xTwo + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } *//***********************************/
+
+	               /* if (x == -1){
+	                    if (debug == true) Debug.Log("tempInt == 1 -> x = -1");	                
+	                }
+	            } else if(tempInt == 2){
+	                if(winType == 3){ */ /***********************************/
+	                    	/*if (debug == true) Debug.Log("winType == 3 - iconInfo[x].xTwo >= winValues[2] -- " + iconInfo[x].xTwo + " >= " + winValues[2] + " for x = " + x);
+
+	                    if(iconInfo[x].xThree >= winValues[2]){
+	                        winIcoID = x;
+	                        hManyIcoWin = 3;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } else if (winType == 2){
+	                    	if (debug == true) Debug.Log("winType == 2 - (iconInfo[x].xTwo <= winValues[2]) && (iconInfo[x].xTwo >= winValues[1]) -- " + iconInfo[x].xTwo + " <= " + winValues[2] + " && " + iconInfo[x].xTwo + " >= " + winValues[1] + " for x = " + x);
+
+	                    if(iconInfo[x].xThree <= winValues[2] && iconInfo[x].xThree <= winValues[1]){
+	                        winIcoID = x;
+	                        hManyIcoWin = 3;
+	                        	
+	                        	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } else {
+	                    	if (debug == true) Debug.Log("winType == 1 - (iconInfo[x].xTwo <= winValues[1]) && (iconInfo[x].xTwo >= winValues[0]) -- " + iconInfo[x].xTwo + " <= " + winValues[1] + " && " + iconInfo[x].xTwo + " >= " + winValues[0] + " for x = " + x);
+
+	                    if(iconInfo[x].xThree <= winValues[1] && iconInfo[x].xThree >= winValues[0]){
+	                        winIcoID = x;
+	                        hManyIcoWin = 3;
+	                       	 	
+	                       	 	if (debug == true) Debug.Log("iconInfo[x].xThree - " + iconInfo[x].xThree + " hManyIcoWin - " + hManyIcoWin + " winIcoID - " + winIcoID + " winType - " + winType);
+
+	                        break;
+	                    } else {
+	                        winIcoID = -1;
+	                    }
+	                } *//***********************************/
+                    
+					/*
+	                if (winIcoID == -1){
+	                    if (debug == true) Debug.Log("tempInt == 2 -> winIcoID = -1");	                
+	                }
+	            }
+	        }
+
+	        if(winIcoID == -1){
+	            	if (debug == true) Debug.Log("winIcoID = -1 restart");
+	            	
+	            GenerateNewReels();
+
+	            //break;
+	        }
+
+	    }
+
+	    if (debug == true) Debug.Log("winIcoID " + winIcoID);
+
+	    for(b = 0; b < hManyIcoWin; b++){ //it will switch no winning icont into winning
+	        if (debug == true) Debug.Log("b - " + b);
+	        if (debug == true) Debug.Log("               s - " + (reelInfo[b].slotOrder.Length - (y+1)));
+
+	        reelInfo[b].slotOrder[(reelInfo[b].slotOrder.Length - (y+1))].sprite.GetComponent.<SpriteRenderer>().sprite = iconInfo[winIcoID].sprite;
+	    }
+
+	}  */  
+    
+	/*for(b = 0; b < reelInfo.Length; b++){ //checking if will be win in a testWinOnLines and saving result into 2D array
+	    step = 0;
+	    for(j = 0; j < reelInfo[b].slotOrder.Length; j++){
+	        if(j < (reelInfo[b].slotOrder.Length - testWinOnLines[0]) && j >= (reelInfo[b].slotOrder.Length - (testWinOnLines[1]+1))){
+	            testForWinArray[b][step] = reelInfo[b].slotOrder[j].sprite.GetComponent.<SpriteRenderer>().sprite.name.ToString(); 
+	            testForWinArrayXY[b][step] = b + "," + j;
+	            step++;
+	        }
+	    }
+	}*/
+
+	prevIconCount = iconsPerReel;
+	valueToWin = 0; //reset nex game win to no interfere
+}
+//----------------------------------------------------------UpdateIconsPerReel---------------------------------------------------------------
+//----------------------------------------------------------PopulateFaceIcons----------------------------------------------------------------
+function PopulateFaceIcons(){ //////////Create a list of symbols that will show up on the screen//////////
+    System.Array.Resize.<int>(faceIcons, reelInfo.Length * 3); //Resize the list of symbols on screen to the amount that will show up
+    System.Array.Resize.<int>(faceSprites, reelInfo.Length * 3); //Resize the list of sprites on screen to the amount that will show up
+	
+    for(var a = 0; a < reelInfo.Length; a++){ //For all the reels
+		var extraIcons = a * iconsPerReelDifference;
+		
+		faceIcons[a * 3] = reelInfo[a].slotOrder[iconsPerReel + extraIcons - 1].ID;
+		faceSprites[a * 3] = iconsPerReel + extraIcons - 1;
+			
+		faceIcons[a * 3 + 1] = reelInfo[a].slotOrder[iconsPerReel + extraIcons - 2].ID;
+		faceSprites[a * 3 + 1] = iconsPerReel + extraIcons - 2;
+			
+		faceIcons[a * 3 + 2] = reelInfo[a].slotOrder[iconsPerReel + extraIcons - 3].ID;
+		faceSprites[a * 3 + 2] = iconsPerReel + extraIcons - 3;
+	}
+}
+//----------------------------------------------------------PopulateFaceIcons----------------------------------------------------------------
+//----------------------------------------------------------FindWinningIcon------------------------------------------------------------------
+function FindWinningIcon(){ 
+	var winIcoID				: String = ""; 
+	var hManyIcoWin				: int = 0;
+	var iconInfoID				: int = 0;
+	
+	for(var x = 0; x < iconInfo.length; x++){
+        if(valueToWin == iconInfo[x].xTwo){
+        	winIcoID = iconInfo[x].sprite.name;
+        	hManyIcoWin = 2;
+        	iconInfoID = x;
+        } else if (valueToWin == iconInfo[x].xThree) {  
+        	winIcoID = iconInfo[x].sprite.name;
+        	hManyIcoWin = 3;
+        	iconInfoID = x;
+        } else if (valueToWin == iconInfo[x].xFour) {  
+        	winIcoID = iconInfo[x].sprite.name;
+        	hManyIcoWin = 4;
+        	iconInfoID = x;
+        } else if (valueToWin == iconInfo[x].xFive) {  
+        	winIcoID = iconInfo[x].sprite.name;
+        	hManyIcoWin = 5;
+        	iconInfoID = x;
+        }           
+ 	}
+	
+		if (debug == true) Debug.Log("--------------------------------FindWinningIcon " + winIcoID + ";" + hManyIcoWin + ";" + iconInfoID);
+	
+    return winIcoID + ";" + hManyIcoWin + ";" + iconInfoID;
+}
+//----------------------------------------------------------FindWinningIcon------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
 
 @script ExecuteInEditMode()

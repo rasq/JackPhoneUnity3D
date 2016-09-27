@@ -1,8 +1,9 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\MSMF\Scripts\VegasSlots.js">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Plugins\UDPClientC.cs">
     <Files>
-      <File FileName="Assets\MSMF\Scripts\VegasSlots.js" Line="896" Column="25" />
+      <File FileName="Assets\Plugins\UDPClientC.cs" Line="97" Column="51" />
+      <File FileName="Assets\Addons\EasyCrypto\Samples\CryptoSample.cs" Line="2" Column="25" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
