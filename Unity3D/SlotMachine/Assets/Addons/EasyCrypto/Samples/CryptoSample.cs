@@ -12,12 +12,12 @@ public class CryptoSample : MonoBehaviour
 	{
 		string data = "EasyCrypto is very simple and easy.";
 		// 1. Encrypt.
-		byte[] encrypted = easyAES.Crypto.encrypt(data, encryptKey);
-		Debug.Log("Encrypted : " + Encoding.UTF8.GetString(encrypted));
+//		byte[] encrypted = easyAES.Crypto.encrypt(data, encryptKey);
+//		Debug.Log("Encrypted : " + Encoding.UTF8.GetString(encrypted));
 
 		// 2. Decrypt.
-		string decrypted = easyAES.Crypto.decrypt(encrypted, encryptKey);
-		Debug.Log("Decrypted : " + decrypted);
+///		string decrypted = easyAES.Crypto.decrypt(encrypted, encryptKey);
+//		Debug.Log("Decrypted : " + decrypted);
 
 	}
 	

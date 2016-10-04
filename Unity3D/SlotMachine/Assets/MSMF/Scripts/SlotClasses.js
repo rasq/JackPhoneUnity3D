@@ -54,6 +54,19 @@ class IconInfo{
 	var xFive : int;
 }
 
+class MultiDimensionalInt {
+  	var intArray 	: int[];
+}
+  
+//////////All the information needed for the icon//////////
+class ScattersInfo{
+	var Name 		: String;
+	var ID 			: int;
+	var isWin 		: boolean;
+	var lineNumber 	: int;
+	var icoID 		: MultiDimensionalInt[];
+}
+
 
 
 class LineInfo{ //////////All the information needed for the lines//////////

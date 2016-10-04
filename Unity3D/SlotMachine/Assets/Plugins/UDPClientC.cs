@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using UnityEngine.UI;
 using System.IO;
-using System.Security.Cryptography;
+
 
 
 public class UDPClientC : MonoBehaviour {
@@ -27,7 +27,6 @@ public class UDPClientC : MonoBehaviour {
 	public string 				driverKey;
 	public string 				messageToNotify;
 	public string 				ipSend = "255.255.255.255";
-	
 	
 	
 	private string 				received = "";
@@ -109,8 +108,6 @@ public class UDPClientC : MonoBehaviour {
 	//----------------------------------------------------------Start----------------------------------------------------------------------------
 	public void Start() {
 		initBMPButtons(5);
-
-		Debug.Log ("EiN9U4sbCrGSIUvT+Dyf8Q== " + encryptDecrypt.DecryptString ("EiN9U4sbCrGSIUvT+Dyf8Q=="));
 	}
 	//----------------------------------------------------------Start----------------------------------------------------------------------------
 	//----------------------------------------------------------Update---------------------------------------------------------------------------

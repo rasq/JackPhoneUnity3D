@@ -33,6 +33,7 @@ www.gambling.silentus.pl/app_dev.php/api/user?bilans=[+/-kwota]&access_token=[to
 public var debug 				: boolean = false;
 public var debugGUI 			: boolean = false;
 
+public var encryptionON 		: boolean = true;
 public var APIIP 				: String = "45.120.148.82";
 public var urlAPI 				: String = "";
 public var urlAPIDev 			: String = "http://jackphone.pl/app_dev.php/api/";
@@ -126,6 +127,7 @@ private var www					: WWW;
 private var UDPClientC 			: UDPClientC;
 private var VegasSlots 			: VegasSlots;
 private var MachineScript 		: MachineScript;
+private var Index_Lobby 		: Index_Lobby;
 
 private var DUM 				: boolean = true;
 private var gPing 				: int = 0;
@@ -143,6 +145,8 @@ private var pingTime 			: int = 15;
 
 //----------------------------------------------------------Awake----------------------------------------------------------------------------
 function Awake(){  
+	Profiler.maxNumberOfSamplesPerFrame = -1;
+
 	if (devBuild == true){
 		urlAPI = urlAPIDev;
 	} else {
@@ -156,6 +160,7 @@ function Awake(){
 function Start() {
     	if (debug == true) Debug.Log("Starting www API");
     	
+    	//Debug.Log(Crypto.AES_decrypt("epJuDNb6MwWIDqLBOicMJB7IzRDr34GQlHjyDnJ2UvY="));	
     MachinesLogin();
     
  		yield WaitForSeconds(5);
@@ -174,6 +179,10 @@ function Update() {
     
     if(GameObject.FindWithTag("MainCamera")){  
         buttonManager = GameObject.FindWithTag("MainCamera").GetComponent.<buttonManager>();  
+    }
+    
+    if(GameObject.FindWithTag("MainCamera")){  
+        Index_Lobby = GameObject.FindWithTag("MainCamera").GetComponent.<Index_Lobby>();  
     }
     
 	if(GameObject.FindWithTag("UDPClient")){   
@@ -268,12 +277,26 @@ function initialMachineSetup(login:String, password:String, drvKey:String){
 		tempUser = login;
 		tempPassword = password;
 		tempDrvKey = drvKey;
+	var toSendMSG1				: String = "";
+	var toSendMSG2				: String = ""; 
+	
+		if (debug == true) Debug.Log("GameConfiguration");
 		
-			yield getDataWWW("m/driverkey?DK=" + tempDrvKey + "&MT=" + MToken);
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (tempDrvKey);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+				toSendMSG2 = Crypto.AES_encrypt (MToken);
+					toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+			} else {
+				toSendMSG1 = tempDrvKey;
+				toSendMSG2 = MToken;
+			}
+		
+			yield getDataWWW("m/driverkey?DK=" + toSendMSG1 + "&MT=" + toSendMSG2);
 }
 //----------------------------------------------------------initialMachineSetup--------------------------------------------------------------
 //----------------------------------------------------------initialMachineSetupRecive--------------------------------------------------------
-function initialMachineSetupRecive(msg:String){
+function initialMachineSetupRecive(msg:String){			
 	var writer 					: XmlWriter  = XmlWriter.Create(xmlPath);
 	
 			if (msg == "-2"){
@@ -314,7 +337,20 @@ function initialMachineSetupRecive(msg:String){
 //----------------------------------------------------------initialMachineSetupRecive--------------------------------------------------------
 //----------------------------------------------------------LogThisMachine-------------------------------------------------------------------
 function LogThisMachine() {	
-    yield getDataWWW("m/login?M=" + MachinePhone + "&P=" + MachinePassword);  
+	var toSendMSG1				: String = "";
+	var toSendMSG2				: String = ""; 
+		
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (MachinePhone);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+				toSendMSG2 = Crypto.AES_encrypt (MachinePassword);
+					toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+			} else {
+				toSendMSG1 = MachinePhone;
+				toSendMSG2 = MachinePassword;
+			}
+			
+    yield getDataWWW("m/login?M=" + toSendMSG1 + "&P=" + toSendMSG2);  
 }
 //----------------------------------------------------------LogThisMachine-------------------------------------------------------------------
 //----------------------------------------------------------LogThisMachineRecive-------------------------------------------------------------
@@ -343,6 +379,10 @@ function LogThisMachineRecive(msg:String) {
 	    	MSaldo = "0";
 	    }   
 	    
+			PlayerPrefs.SetInt("Coins", System.Int32.Parse(saldo));
+    		
+    		if (Index_Lobby != null) Index_Lobby.upddateCoins();
+    		
 		saldo = MSaldo;
 		
 			if (debug == true) Debug.Log("LogThisMachine saldo to game: " + saldo);
@@ -383,10 +423,31 @@ function MachinesLogin() {
 //----------------------------------------------------------MachinesLogin--------------------------------------------------------------------
 //----------------------------------------------------------GameConfiguration----------------------------------------------------------------
 function GameConfiguration() {
-		if (debug == true) Debug.Log("GameConfiguration");
+	var toSendMSG1				: String = "";
+	var toSendMSG2				: String = ""; 
+	var toSendMSG3				: String = ""; 
+	var toSendMSG4				: String = ""; 
 	
-    yield getDataWWW("g/config?UT="+ UToken + "&MT=" + MToken);     	
-    yield getDataWWW("m/config?MT="+ MToken + "&V=" + gameVersion + "&ID=" + gameID); 
+		if (debug == true) Debug.Log("GameConfiguration");
+		
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (UToken);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+				toSendMSG2 = Crypto.AES_encrypt (MToken);
+					toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+				toSendMSG3 = Crypto.AES_encrypt (gameVersion);
+					toSendMSG3 = specialCharsClear(toSendMSG3);//toSendMSG3.Replace("=", "$");
+				toSendMSG4 = Crypto.AES_encrypt (gameID);
+					toSendMSG4 = specialCharsClear(toSendMSG4);//toSendMSG4.Replace("=", "$");
+			} else {
+				toSendMSG1 = UToken;
+				toSendMSG2 = MToken;
+				toSendMSG3 = gameVersion;
+				toSendMSG4 = gameID;
+			}
+	
+    yield getDataWWW("g/config?UT="+ toSendMSG1 + "&MT=" + toSendMSG2);     	
+    yield getDataWWW("m/config?MT="+ toSendMSG2 + "&V=" + toSendMSG3 + "&ID=" + toSendMSG4); 
 }
 //----------------------------------------------------------GameConfiguration----------------------------------------------------------------
 //----------------------------------------------------------GameConfigurationRecive----------------------------------------------------------
@@ -448,7 +509,7 @@ function GameConfigurationRecive(msg:String) {
 		} else if (responseArray[0] == "mConf"){
 				if (debug == true) Debug.Log("GameConfigurationRecive - mConf");
 				responseArray[1] = pullData;
-	    	if (pullData != "-2" && pullData != '"invalid_game_id"') {
+	    	if (pullData != "-2" && pullData != '"invalid_id_game"') {
 		    	MachineStatus = pullData;
 				Debug.Log(pullData);
 			    if(MachineStatus != null) {
@@ -496,17 +557,30 @@ function GameConfigurationRecive(msg:String) {
 //----------------------------------------------------------GameConfigurationRecive----------------------------------------------------------
 //----------------------------------------------------------ifUserExist----------------------------------------------------------------------
 function ifUserExist() {
+	var toSendMSG1				: String = "";
+	 	
     checkEmail = VerifyEmailAddress();
     checkPhone = VerifyPhoneNumber();
 
     if(checkEmail == true) {
         	if (debug == true) Debug.Log("Email address entered. Checking if email address exist..."); 
         
-        yield getDataWWW("check?email=" + fLogin);
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (fLogin);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+			} else {
+				toSendMSG1 = fLogin;
+			}
+        yield getDataWWW("check?email=" + toSendMSG1);
     } else if(checkPhone == true) {
         	if (debug == true) Debug.Log("Phone number entered. Checking if phone exist..."); 
         
-        yield getDataWWW("check?tel=" + fLogin);
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (fLogin);
+			} else {
+				toSendMSG1 = fLogin;
+			}
+        yield getDataWWW("check?tel=" + toSendMSG1);
     } else {
         if (debug == true) Debug.Log("Wrong login. Please enter proper value.");
     }
@@ -546,14 +620,42 @@ function setUser(login:String, pswd:String){
 //----------------------------------------------------------setUser--------------------------------------------------------------------------
 //----------------------------------------------------------LoginUser------------------------------------------------------------------------
 function LoginUser() {	
+	var toSendMSG1				: String = "";
+	var toSendMSG2				: String = ""; 
+	var toSendMSG3				: String = ""; 
+	
     if(fLogin == "" || fPassword == "") {
         if (debug == true) Debug.Log("Fill all fields");
     }
     
     if(checkEmail == true) {
-        yield getDataWWW("login?U=" + fLogin + "&P=" + fPassword + "&MT=" + MToken);
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (fLogin);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+				toSendMSG2 = Crypto.AES_encrypt (fPassword);
+					toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+				toSendMSG3 = Crypto.AES_encrypt (MToken);
+					toSendMSG3 = specialCharsClear(toSendMSG3);//toSendMSG3.Replace("=", "$");
+			} else {
+				toSendMSG1 = fLogin;
+				toSendMSG2 = fPassword;
+				toSendMSG3 = MToken;
+			}
+        yield getDataWWW("login?U=" + toSendMSG1 + "&P=" + toSendMSG2 + "&MT=" + toSendMSG3);
     } else if (checkPhone == true) {
-        yield getDataWWW("login?U=48" + fLogin + "&P=" + fPassword + "&MT=" + MToken);
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (fLogin);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+				toSendMSG2 = Crypto.AES_encrypt (fPassword);
+					toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+				toSendMSG3 = Crypto.AES_encrypt (MToken);
+					toSendMSG3 = specialCharsClear(toSendMSG3);//toSendMSG3.Replace("=", "$");
+			} else {
+				toSendMSG1 = fLogin;
+				toSendMSG2 = fPassword;
+				toSendMSG3 = MToken;
+			}
+        yield getDataWWW("login?U=48" + toSendMSG1 + "&P=" + toSendMSG2 + "&MT=" + toSendMSG3);
     }
  }
 //----------------------------------------------------------LoginUser------------------------------------------------------------------------
@@ -594,8 +696,16 @@ function LoginUserRecive(msg:String) {
 //----------------------------------------------------------LoginUserRecive------------------------------------------------------------------
 //----------------------------------------------------------LogOut---------------------------------------------------------------------------
 function LogOut() {
+	var toSendMSG1				: String = "";
+	 	
 	if (UToken != ""){
-    	yield getDataWWW("u/logout?UT=" + UToken);
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (UToken);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+			} else {
+				toSendMSG1 = UToken;
+			}
+    	yield getDataWWW("u/logout?UT=" + toSendMSG1);
     }
 }
 //----------------------------------------------------------LogOut---------------------------------------------------------------------------
@@ -603,7 +713,7 @@ function LogOut() {
 function LogOutRecive(msg:String) {
 	var pullData 				: String = "";
 	
-	pullData = msg;
+		pullData = msg;
 	
 	    if(pullData == "0") {     
 		    UToken = "";
@@ -623,8 +733,16 @@ function LogOutRecive(msg:String) {
 //----------------------------------------------------------LogOutRecive---------------------------------------------------------------------
 //----------------------------------------------------------MachineLogOut--------------------------------------------------------------------
 function MachineLogOut() {
+	var toSendMSG1				: String = "";
+	 	
 	if (MToken != ""){
-    	yield getDataWWW("m/logout?MT=" + MToken);
+			if (encryptionON == true) {
+				toSendMSG1 = Crypto.AES_encrypt (MToken);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+			} else {
+				toSendMSG1 = MToken;
+			}
+    	yield getDataWWW("m/logout?MT=" + toSendMSG1);
     } 
 }
 //----------------------------------------------------------MachineLogOut--------------------------------------------------------------------
@@ -632,7 +750,7 @@ function MachineLogOut() {
 function MachineLogOutRecive(msg:String) {
 	var pullData 				: String = "";
 	
-	pullData = msg;
+		pullData = msg;
 
     if(pullData != '0') {     
 	    MToken = "";
@@ -651,12 +769,21 @@ function MachineLogOutRecive(msg:String) {
 //----------------------------------------------------------MachineLogOutRecive--------------------------------------------------------------
 //----------------------------------------------------------DisplayUSaldo--------------------------------------------------------------------
 function DisplayUSaldo() {
+	var toSendMSG1				: String = "";
+	 	
+	if (encryptionON == true) {
+		toSendMSG1 = Crypto.AES_encrypt (UToken);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+	} else {
+		toSendMSG1 = UToken;
+	}
+	
 	DUM = false;
-    yield getDataWWW("u/bilans/get?UT=" + UToken);
+    yield getDataWWW("u/bilans/get?UT=" + toSendMSG1);
 }
 //----------------------------------------------------------DisplayUSaldo--------------------------------------------------------------------
 //----------------------------------------------------------DisplayUSaldoRecive--------------------------------------------------------------
-function DisplayUSaldoRecive(msg:String) {
+function DisplayUSaldoRecive(msg:String) {		
     if (msg != "-1"){
     	USaldo = msg;
     		
@@ -671,8 +798,17 @@ function DisplayUSaldoRecive(msg:String) {
 //----------------------------------------------------------DisplayUSaldoRecive--------------------------------------------------------------
 //----------------------------------------------------------DisplayMSaldo--------------------------------------------------------------------
 function DisplayMSaldo() {
+	var toSendMSG1				: String = "";
+	 	
+	if (encryptionON == true) {
+		toSendMSG1 = Crypto.AES_encrypt (MToken);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+	} else {
+		toSendMSG1 = MToken;
+	}
+	
 	DUM = true;
-    yield getDataWWW("m/bilans/get?MT=" + MToken);
+    yield getDataWWW("m/bilans/get?MT=" + toSendMSG1);
 }
 //----------------------------------------------------------DisplayMSaldoRecive--------------------------------------------------------------
 function DisplayMSaldoRecive(msg:String) {
@@ -694,12 +830,24 @@ function DisplayMSaldoRecive(msg:String) {
 //----------------------------------------------------------DisplayMSaldoRecive--------------------------------------------------------------
 //----------------------------------------------------------MachineCashRegisterStatus--------------------------------------------------------
 function MachineCashRegisterStatus(msg:int) {
-	yield getDataWWW("m/credit?MT" + MToken + "&R=" + msg);
+	var toSendMSG1				: String = "";
+	var toSendMSG2				: String = ""; 
+	 	
+	if (encryptionON == true) {
+		toSendMSG1 = Crypto.AES_encrypt (MToken);
+					toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+		toSendMSG2 = Crypto.AES_encrypt (msg.ToString());
+					toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+	} else {
+		toSendMSG1 = MToken;
+		toSendMSG2 = msg.ToString();
+	}
+	
+	yield getDataWWW("m/credit?MT" + toSendMSG1 + "&R=" + toSendMSG2);
 }
 //----------------------------------------------------------MachineCashRegisterStatus--------------------------------------------------------
 //----------------------------------------------------------MachineCashRegisterRecive--------------------------------------------------------
 function MachineCashRegisterRecive(msg:String) {
-		
 	if (msg == "0"){
 		if (debug == true) Debug.Log("MachineCashRegisterStatus update success.");
 	} else if (msg == "-2"){
@@ -712,12 +860,33 @@ function MachineCashRegisterRecive(msg:String) {
 //----------------------------------------------------------AddCoins-------------------------------------------------------------------------
 function AddCoins(msg:int) {
 	var pullData 				: String = "";
+	var toSendMSG1				: String = "";
+	var toSendMSG2				: String = ""; 
+	
 	
 	if (msg > 0){
 		if (UToken != ""){
-	    	yield getDataWWW("u/bilans?UT=" + UToken + "&amount=" + msg + "&type=add");
+				if (encryptionON == true) {
+					toSendMSG1 = Crypto.AES_encrypt (UToken);
+						toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+					toSendMSG2 = Crypto.AES_encrypt (msg.ToString());
+						toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+				} else {
+					toSendMSG1 = UToken;
+					toSendMSG2 = msg.ToString();
+				}
+	    	yield getDataWWW("u/bilans?UT=" + toSendMSG1 + "&amount=" + toSendMSG2 + "&type=add");
 	    } else {
-			yield getDataWWW("m/bilans?MT=" + MToken + "&amount=" + msg + "&type=add");
+				if (encryptionON == true) {
+					toSendMSG1 = Crypto.AES_encrypt (MToken);
+						toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+					toSendMSG2 = Crypto.AES_encrypt (msg.ToString());
+						toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+				} else {
+					toSendMSG1 = MToken;
+					toSendMSG2 = msg.ToString();
+				}
+			yield getDataWWW("m/bilans?MT=" + toSendMSG1 + "&amount=" + toSendMSG2 + "&type=add");
 		}
 		
 		pullData = www.text;
@@ -744,11 +913,32 @@ function AddCoins(msg:int) {
 //----------------------------------------------------------AddCoins-------------------------------------------------------------------------
 //----------------------------------------------------------SubCoins-------------------------------------------------------------------------
 function SubCoins(msg:int) {
+	var toSendMSG1				: String = "";
+	var toSendMSG2				: String = ""; 
+	 		
 	if (msg > 0){
 		if (UToken != ""){
-		    yield getDataWWW("u/bilans?UT=" + UToken + "&amount=" + msg + "&type=sub");
+				if (encryptionON == true) {
+					toSendMSG1 = Crypto.AES_encrypt (UToken);
+						toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+					toSendMSG2 = Crypto.AES_encrypt (msg.ToString());
+						toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+				} else {
+					toSendMSG1 = UToken;
+					toSendMSG2 = msg.ToString();
+				}
+		    yield getDataWWW("u/bilans?UT=" + toSendMSG1 + "&amount=" + toSendMSG2 + "&type=sub");
 		} else {
-			yield getDataWWW("m/bilans?MT=" + MToken + "&amount=" + msg + "&type=sub");
+				if (encryptionON == true) {
+					toSendMSG1 = Crypto.AES_encrypt (MToken);
+						toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+					toSendMSG2 = Crypto.AES_encrypt (msg.ToString());
+						toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+				} else {
+					toSendMSG1 = MToken;
+					toSendMSG2 = msg.ToString();
+				}
+			yield getDataWWW("m/bilans?MT=" + toSendMSG1 + "&amount=" + toSendMSG2 + "&type=sub");
 		}
 		
 		if (www.text == "1"){
@@ -792,7 +982,20 @@ function ReciveBilans(msg:String) {
 //----------------------------------------------------------ReciveBilans---------------------------------------------------------------------
 //----------------------------------------------------------WinGame--------------------------------------------------------------------------
 function WinGame() {
-    yield getDataWWW("u/bilans?UT=" + UToken + "&amount=" + UBilans + "&type=add");
+	var toSendMSG1				: String = "";
+	var toSendMSG2				: String = ""; 
+	 	
+	if (encryptionON == true) {
+		toSendMSG1 = Crypto.AES_encrypt (UToken);
+			toSendMSG1 = specialCharsClear(toSendMSG1);//toSendMSG1.Replace("=", "$");
+		toSendMSG2 = Crypto.AES_encrypt (UBilans.ToString());
+			toSendMSG2 = specialCharsClear(toSendMSG2);//toSendMSG2.Replace("=", "$");
+	} else {
+		toSendMSG1 = UToken;
+		toSendMSG2 = UBilans.ToString();
+	}
+	
+    yield getDataWWW("u/bilans?UT=" + toSendMSG1 + "&amount=" + toSendMSG2 + "&type=add");
     	
     	if (debug == true) Debug.Log("Wygrales!!!");
 }
@@ -907,6 +1110,10 @@ function getDataWWW(param : String){
 //----------------------------------------------------------parseWWWResponse-----------------------------------------------------------------
 function parseWWWResponse(response : String){
 	var responseArray			: String[];
+			
+			if (encryptionON == true) {
+				response = Crypto.AES_decrypt (response);
+			} 
 	
 			if (debug == true) Debug.Log("Odpowiedz: " + response);
 			
@@ -964,9 +1171,17 @@ function parseWWWResponse(response : String){
 //----------------------------------------------------------parseWWWResponse-----------------------------------------------------------------
 //----------------------------------------------------------pingSystem-----------------------------------------------------------------------
 function pingSystem(){
+	var toSendMSG				: String = "";
 	 	if (debug == true) Debug.Log("starting ping");	 
 	 	
-	yield getDataWWW("m/ping?phone=" + MachinePhone);	
+	if (encryptionON == true) {
+		toSendMSG = Crypto.AES_encrypt (MachinePhone);
+			toSendMSG = specialCharsClear(toSendMSG);//toSendMSG.Replace("=", "$");
+	} else {
+		toSendMSG = MachinePhone;
+	}
+	
+	yield getDataWWW("m/ping?phone=" + toSendMSG);	
 }
 
 function loopPing(){
@@ -1056,3 +1271,14 @@ function Sub20() {
     	if (debug == true) Debug.Log("Bilans -20");
 }
 //----------------------------------------------------------dbgFunctions---------------------------------------------------------------------
+
+function specialCharsClear(param : String){
+		param = param.Replace("=", "$");
+		param = param.Replace("+", "%2B");
+		param = param.Replace("=", "%3D");
+		param = param.Replace("/", "%2F");
+		param = param.Replace("\\", "%5C");
+		
+	return param;
+}
+	
