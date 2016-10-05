@@ -86,6 +86,7 @@ private var MachineScript 		: MachineScript;
 private var tmpString 			: String = "";
 private var buttonsBlockade 	: boolean = false;
 private var isPause 			: boolean = false;
+
 public var Opcje 				: GameObject;
 
 //----------------------------------------------------------Awake----------------------------------------------------------------------------
@@ -520,7 +521,7 @@ function setNumbers(x : int, y : String, name : String){
 //----------------------------------------------------------grajFN---------------------------------------------------------------------------
 function grajFN(){
 	if (VegasSlots != null && userData != null && wwwCommunication != null) {
-		if (playBlockade == false){
+		//if (playBlockade == false){
 		    	if (debug == true) Debug.Log ("startReel()");
 		    	if (debug == true) Debug.Log ("VegasSlots.currentBet " + VegasSlots.currentBet + " userData.coins " + userData.coins);
 		    	
@@ -530,7 +531,7 @@ function grajFN(){
 		        VegasSlots.spinning = true;
 		        VegasSlotsJackPhone.startReel();
 		    }
-	    }
+	    //}
     } else {
     	if (debug == true) Debug.Log ("VegasSlots or userData or wwwCommunication is empty.");
     }

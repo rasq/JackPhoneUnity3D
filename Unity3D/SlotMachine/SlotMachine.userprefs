@@ -1,12 +1,14 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\MSMF\Scripts\VegasSlots.js">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\MyAssets\AdditionalScripts\wwwCommunication.js">
     <Files>
-      <File FileName="Assets\MSMF\Scripts\VegasSlots.js" Line="1271" Column="28" />
-      <File FileName="Assets\MyAssets\AdditionalScripts\wwwCommunication.js" Line="1" Column="1" />
+      <File FileName="Assets\MyAssets\AdditionalScripts\wwwCommunication.js" Line="143" Column="10" />
+      <File FileName="Assets\MSMF\Scripts\VegasSlots.js" Line="144" Column="7" />
       <File FileName="Assets\MSMF\Scripts\UserData.js" Line="1" Column="1" />
       <File FileName="Assets\MSMF\Scripts\SlotClasses.js" Line="1" Column="1" />
-      <File FileName="Assets\MSMF\Scripts\Lobby.js" Line="20" Column="1" />
+      <File FileName="Assets\MSMF\Scripts\Lobby.js" Line="1" Column="1" />
+      <File FileName="Assets\MSMF\Scripts\Index_Lobby.js" Line="1" Column="1" />
+      <File FileName="Assets\MyAssets\AdditionalScripts\buttonManager.js" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

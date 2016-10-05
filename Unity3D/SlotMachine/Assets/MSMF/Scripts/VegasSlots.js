@@ -141,10 +141,10 @@ private var prevIconCount 		: int;
 private var scattersLeft 		: int;
 private var bonusWinnings 		: float;
 private var lineCount 			: int;
-private var prevFaceIcons 		: int[];
-private var faceIcons 			: int[];
-private var faceSpritesName  	: String[];
-private var faceSprites 		: int[];
+public var prevFaceIcons 		: int[];
+public var faceIcons 			: int[];
+public var faceSpritesName  	: String[];
+public var faceSprites 		: int[];
 private var curSpinSpeed 		: float;
 private var scatterTimer 		: float;
 private var effectsTimer 		: float;
@@ -157,8 +157,8 @@ private var jump				: float = 1.5; //i dont remember was it is... maybe for posi
 private var a					: int = 0;
 private var y					: int = 0;
 private var tempInt 			: int;
-private var linesPoints 		: int[];
-private var slotsMatrix 		: int[];
+public var linesPoints 		: int[];
+public var slotsMatrix 		: int[];
 
 //----------------------------------------------------------Update---------------------------------------------------------------------------
 function Update(){
@@ -1189,7 +1189,7 @@ function GenerateLinesInfo(){
 		}
 }
 //----------------------------------------------------------GenerateLinesInfo----------------------------------------------------------------
-//----------------------------------------------------------getRandomID----------------------------------------------------------------------
+//----------------------------------------------------------getScattersSettinsID-------------------------------------------------------------
 function getScattersSettinsID(msg : int){
 	var i						: int = 0;
 	var j 						: int = 0;
@@ -1201,28 +1201,31 @@ function getScattersSettinsID(msg : int){
 		if (msg == 0) {
 			step = retRandInt(0, 10);
 			
-			if (step > 5){
-				step = retRandInt(0, 10);
 				if (step > 5){
-					almostWin = true;
+					step = retRandInt(0, 10);
+					if (step > 5){
+						almostWin = true;
+					} else {
+						almostWin = false;
+					}
 				} else {
 					almostWin = false;
 				}
-			} else {
-				almostWin = false;
-			}
 				
+			Debug.Log("almostWin " + almostWin);
 				
 			if (almostWin == true){
+				j = 0;
+				i = 0;
 					for (i = 0; i < ScattersInfo.Length; i++) {
 						if ((howManyLines - 1) < ScattersInfo[i].lineNumber){
 							j++;
 						}
 					}
 					
-						System.Array.Resize.<int>(randomizedID, j); 
-						j = 0;
-						i = 0;
+				System.Array.Resize.<int>(randomizedID, j); 
+				j = 0;
+				i = 0;
 						
 					for (i = 0; i < ScattersInfo.Length; i++) {
 						if ((howManyLines - 1) < ScattersInfo[i].lineNumber){
@@ -1231,15 +1234,17 @@ function getScattersSettinsID(msg : int){
 						}
 					}
 			} else {
+				j = 0;
+				i = 0;
 					for (i = 0; i < ScattersInfo.Length; i++) {
 						if ((howManyLines - 1) < ScattersInfo[i].lineNumber && ScattersInfo[i].ID == 0){
 							j++;
 						}
 					}
 					
-						System.Array.Resize.<int>(randomizedID, j); 
-						j = 0;
-						i = 0;
+				System.Array.Resize.<int>(randomizedID, j); 
+				j = 0;
+				i = 0;
 						
 					for (i = 0; i < ScattersInfo.Length; i++) {
 						if ((howManyLines - 1) < ScattersInfo[i].lineNumber && ScattersInfo[i].ID == 0){
@@ -1249,32 +1254,34 @@ function getScattersSettinsID(msg : int){
 					}
 			}
 		} else {
-			for (i = 0; i < ScattersInfo.Length; i++) {
-				if (((howManyLines - 1) >= ScattersInfo[i].lineNumber) && msg == ScattersInfo[i].ID){
-					j++;
+			j = 0;
+			i = 0;
+				for (i = 0; i < ScattersInfo.Length; i++) {
+					if (((howManyLines - 1) >= ScattersInfo[i].lineNumber) && msg == ScattersInfo[i].ID){
+						j++;
+					}
 				}
-			}
 			
-				System.Array.Resize.<int>(randomizedID, j); 
-				j = 0;
-				i = 0;
+			System.Array.Resize.<int>(randomizedID, j); 
+			j = 0;
+			i = 0;
 				
-			for (i = 0; i < ScattersInfo.Length; i++) {
-				if (((howManyLines - 1) >= ScattersInfo[i].lineNumber) && msg == ScattersInfo[i].ID){
-					randomizedID[j] = i;
-					j++;
+				for (i = 0; i < ScattersInfo.Length; i++) {
+					if (((howManyLines - 1) >= ScattersInfo[i].lineNumber) && msg == ScattersInfo[i].ID){
+						randomizedID[j] = i;
+						j++;
+					}
 				}
-			}
 		}
 		
 		
-			step = retRandInt(0, j + 1);
+			step = retRandInt(0, j - 1);
 			
 				Debug.Log("scattersID[step] " + randomizedID[step]);
 		
 		return randomizedID[step];
 }
-//----------------------------------------------------------getRandomID----------------------------------------------------------------------
+//----------------------------------------------------------getScattersSettinsID-------------------------------------------------------------
 //----------------------------------------------------------applyRandomID--------------------------------------------------------------------
 function applyRandomID(msg : int){
 	var step 					: int = 0;

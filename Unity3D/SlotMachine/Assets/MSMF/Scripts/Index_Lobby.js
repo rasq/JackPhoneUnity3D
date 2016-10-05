@@ -78,9 +78,9 @@ function Click(position : Vector3){
 	             parseInput("BTN," + hit.collider.gameObject.name);
 	        } else {
 	        	if (hit.collider.gameObject.name == "login"){
-	        		/*if (debug == true)*/ Debug.Log("Lobby hit: " + hit.collider.gameObject.name);
+	        		if (debug == true) Debug.Log("Lobby hit: " + hit.collider.gameObject.name);
 	        	} else if (hit.collider.gameObject.name == "payout"){
-	        		/*if (debug == true)*/ Debug.Log("Lobby hit: " + hit.collider.gameObject.name);
+	        		if (debug == true) Debug.Log("Lobby hit: " + hit.collider.gameObject.name);
 	        	}
 	        }
     }

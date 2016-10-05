@@ -145,7 +145,7 @@ private var pingTime 			: int = 15;
 
 //----------------------------------------------------------Awake----------------------------------------------------------------------------
 function Awake(){  
-	Profiler.maxNumberOfSamplesPerFrame = -1;
+	//Profiler.maxNumberOfSamplesPerFrame = -1;
 
 	if (devBuild == true){
 		urlAPI = urlAPIDev;
@@ -325,6 +325,12 @@ function initialMachineSetupRecive(msg:String){
 				writer.WriteEndElement();
 				writer.WriteStartElement("phonePrefix");
 					writer.WriteString(phonePrefixMV);
+				writer.WriteEndElement();
+				writer.WriteStartElement("gameID");
+					writer.WriteString(gameID);
+				writer.WriteEndElement();
+				writer.WriteStartElement("gameVersion");
+					writer.WriteString(gameVersion);
 				writer.WriteEndElement();
 			writer.WriteEndElement();
 			       
